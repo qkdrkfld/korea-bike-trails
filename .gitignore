@@ -1,6 +1,11 @@
 .cline/
 .wrangler/
+node_modules/
+.DS_Store
+public/
+dist/
 .dev.vars*
+.env*
 *.sqlite
 *.sqlite3
 *.db

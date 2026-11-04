@@ -1,4 +1,4 @@
-const BOARD_API = '';
+const BOARD_API = '/api';
 const BOARD_STORAGE_KEY = 'korea-bike-trails-board-v1';
 const BOARD_VISITOR_KEY = 'korea-bike-trails-visitor-v1';
 
@@ -18,7 +18,7 @@ function getOrCreateVisitorId() {
   try {
     let visitorId = localStorage.getItem(BOARD_VISITOR_KEY);
     if (!visitorId) {
-      visitorId = crypto.randomUUID();
+      visitorId = crypto.randomUUID().replaceAll('-', '');
       localStorage.setItem(BOARD_VISITOR_KEY, visitorId);
     }
     return visitorId;
@@ -61,10 +61,6 @@ function setLocalReaction(postId, liked) {
 }
 
 async function requestBoard(path, options = {}) {
-  if (!BOARD_API) {
-    return { mode: 'local', posts: readLocalPosts() };
-  }
-
   const response = await fetch(`${BOARD_API}${path}`, {
     ...options,
     headers: {
@@ -115,7 +111,7 @@ function createPostElement(post) {
   const actions = document.createElement('div');
   actions.className = 'post-actions';
   const likeButton = document.createElement('button');
-  const isLiked = BOARD_API ? Boolean(post.likedBy?.includes(currentVisitorId)) : getLocalReaction(post.id);
+  const isLiked = Boolean(post.likedBy?.includes('current'));
   likeButton.className = `post-like${isLiked ? ' is-liked' : ''}`;
   likeButton.type = 'button';
   likeButton.dataset.action = 'like';
@@ -183,7 +179,7 @@ async function loadPosts() {
     storageNotice.hidden = !isLocalDemo;
     renderPosts();
   } catch (error) {
-    storageNotice.textContent = error.message;
+    storageNotice.textContent = `게시판 API에 연결할 수 없습니다. ${error.message}`;
     storageNotice.classList.add('is-error');
     boardFeedback.textContent = error.message;
   }
@@ -198,20 +194,10 @@ postForm.addEventListener('submit', async (event) => {
   if (!nickname || !title || !content) return;
 
   try {
-    if (BOARD_API) {
-      await requestBoard('/posts', { method: 'POST', body: JSON.stringify({ nickname, title, content }) });
-      await loadPosts();
-    } else {
-      const newPost = {
-        id: crypto.randomUUID(), nickname, title, content,
-        createdAt: new Date().toISOString(), likes: 0, comments: [],
-      };
-      posts.unshift(newPost);
-      saveLocalPosts();
-      renderPosts();
-    }
+    await requestBoard('/posts', { method: 'POST', body: JSON.stringify({ nickname, title, content }) });
+    await loadPosts();
     postForm.reset();
-    boardFeedback.textContent = BOARD_API ? '게시글을 등록했습니다.' : '게시글을 이 브라우저에 저장했습니다. 다른 방문자와 공유되지는 않습니다.';
+    boardFeedback.textContent = '게시글을 등록했습니다.';
   } catch (error) {
     boardFeedback.textContent = error.message;
   }
@@ -231,16 +217,8 @@ postList.addEventListener('click', async (event) => {
   }
 
   try {
-    if (BOARD_API) {
-      await requestBoard(`/posts/${encodeURIComponent(post.id)}/likes`, { method: 'POST' });
-      await loadPosts();
-    } else {
-      const wasLiked = getLocalReaction(post.id);
-      setLocalReaction(post.id, !wasLiked);
-      post.likes = Math.max(0, (post.likes || 0) + (wasLiked ? -1 : 1));
-      saveLocalPosts();
-      renderPosts();
-    }
+    await requestBoard(`/posts/${encodeURIComponent(post.id)}/likes`, { method: 'POST' });
+    await loadPosts();
   } catch (error) {
     boardFeedback.textContent = error.message;
   }
@@ -258,19 +236,9 @@ postList.addEventListener('submit', async (event) => {
   if (!post || !nickname || !content) return;
 
   try {
-    if (BOARD_API) {
-      await requestBoard(`/posts/${encodeURIComponent(post.id)}/comments`, { method: 'POST', body: JSON.stringify({ nickname, content }) });
-      await loadPosts();
-    } else {
-      post.comments ||= [];
-      post.comments.push({ id: crypto.randomUUID(), nickname, content, createdAt: new Date().toISOString() });
-      saveLocalPosts();
-      renderPosts();
-      const renderedArticle = [...postList.querySelectorAll('[data-post-id]')].find((item) => item.dataset.postId === post.id);
-      const comments = renderedArticle?.querySelector('.post-comments');
-      if (comments) comments.hidden = false;
-    }
-    boardFeedback.textContent = BOARD_API ? '댓글을 등록했습니다.' : '댓글을 이 브라우저에 저장했습니다.';
+    await requestBoard(`/posts/${encodeURIComponent(post.id)}/comments`, { method: 'POST', body: JSON.stringify({ nickname, content }) });
+    await loadPosts();
+    boardFeedback.textContent = '댓글을 등록했습니다.';
   } catch (error) {
     boardFeedback.textContent = error.message;
   }

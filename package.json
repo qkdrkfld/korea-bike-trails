@@ -1,0 +1,14 @@
+{
+  "name": "korea-bike-trails",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "db:local": "wrangler d1 migrations apply korea-bike-trails-board --local",
+    "db:remote": "wrangler d1 migrations apply korea-bike-trails-board --remote"
+  },
+  "devDependencies": {
+    "wrangler": "^4.157.0"
+  }
+}
