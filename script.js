@@ -40,6 +40,217 @@ const centerList = document.querySelector('#center-list');
 const centersSource = document.querySelector('#centers-source');
 const mapStage = document.querySelector('#map-stage');
 let activeFilter = 'all';
+let officialRouteData = null;
+
+const officialRoutes = [
+  { id: 'ara', title: '아라자전거길', roadSn: 1, category: 'arterial', color: '#d28c33' },
+  { id: 'hangang', title: '한강종주자전거길(서울구간)', roadSn: 2, category: 'river', color: '#e77845' },
+  { id: 'namhan', title: '남한강자전거길', roadSn: 3, category: 'river', color: '#e77845' },
+  { id: 'bukhan', title: '북한강자전거길', roadSn: 8, category: 'river', color: '#e77845' },
+  { id: 'saejae', title: '새재자전거길', roadSn: 4, category: 'crossing', color: '#477b69' },
+  { id: 'nakdong', title: '낙동강자전거길', roadSn: 5, category: 'river', color: '#477b69' },
+  { id: 'geum', title: '금강자전거길', roadSn: 6, category: 'river', color: '#bf8b34' },
+  { id: 'yeongsan', title: '영산강자전거길', roadSn: 7, category: 'river', color: '#6387a8' },
+  { id: 'seomjin', title: '섬진강자전거길', roadSn: 9, category: 'river', color: '#a86c8d' },
+  { id: 'ocheon', title: '오천자전거길', roadSn: 10, category: 'river', color: '#7779ab' },
+  { id: 'eastGangwon', title: '동해안자전거길(강원)', roadSn: 11, category: 'coast', color: '#3284a0' },
+  { id: 'eastGyeongbuk', title: '동해안자전거길(경북)', roadSn: 12, category: 'coast', color: '#3284a0' },
+  { id: 'jeju', title: '제주환상자전거길', roadSn: 13, category: 'coast', color: '#d95f4a' }
+];
+
+const cardRouteToGeometry = {
+  hangang: ['ara', 'hangang', 'namhan', 'bukhan'],
+  nakdong: ['saejae', 'nakdong'],
+  geum: ['geum'],
+  jeju: ['jeju']
+};
+
+const geometryToCardRoute = Object.fromEntries(
+  Object.entries(cardRouteToGeometry).flatMap(([cardRoute, geometryIds]) =>
+    geometryIds.map((geometryId) => [geometryId, cardRoute]))
+);
+
+const officialRouteDetails = {
+  ara: {
+    totalDistance: '21 km', course: '아라서해갑문 → 아라한강갑문',
+    description: '경인아라뱃길을 따라 곧게 이어지는 자전거길입니다.',
+    centers: [['아라서해갑문', '출발점', '공식 지도 안내'], ['아라한강갑문', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=1&roadType=1&xp=37.570595&yp=126.699981&key=2008148358544&zm=12'
+  },
+  hangang: {
+    totalDistance: '56 km · 서울 구간', course: '아라한강갑문 → 팔당대교',
+    description: '한강을 따라 도시 속 휴식처를 지나는 산책하듯 편안한 코스입니다.',
+    source: 'https://www.bike.go.kr/bbs/road.do?key=2006176973579&bbsCtgrySn=8&bbsCtgrySubSn=45'
+  },
+  namhan: {
+    totalDistance: '132 km', course: '팔당대교 → 충주 탄금대',
+    description: '옛 중앙선 폐철도 구간을 지나는 남한강 자전거길입니다.',
+    centers: [['팔당대교', '출발점', '공식 지도 안내'], ['능내역', '인증센터', '공식 지도 안내'], ['양평자전거쉼터', '경유지', '공식 지도 안내'], ['이포보', '인증센터', '공식 지도 안내'], ['여주보', '인증센터', '공식 지도 안내'], ['강천보', '인증센터', '공식 지도 안내'], ['비내섬', '인증센터', '공식 지도 안내'], ['목행교', '경유지', '공식 지도 안내'], ['충주 탄금대', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=3&roadType=1&xp=37.3264&yp=127.605&key=2008148358544&zm=10'
+  },
+  bukhan: {
+    totalDistance: '99 km', course: '북한강 자전거길',
+    description: '청평호반과 의암호반 등 호수와 산의 풍경을 지나는 코스입니다.',
+    centers: [['밝은광장', '출발점', '공식 지도 안내'], ['샛터삼거리', '인증센터', '공식 지도 안내'], ['경강교', '인증센터', '공식 지도 안내'], ['신매대교', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=8&roadType=1&xp=37.7373013&yp=127.5152776&key=2008148358544&zm=10'
+  },
+  saejae: {
+    totalDistance: '100 km', course: '충주 탄금대 → 상주 상풍교',
+    description: '한강과 낙동강을 잇고 이화령 고개를 넘는 종주 코스입니다.',
+    centers: [['충주 탄금대', '출발점', '공식 지도 안내'], ['수안보온천', '인증센터', '공식 지도 안내'], ['이화령휴게소', '인증센터', '공식 지도 안내'], ['문경불정역', '인증센터', '공식 지도 안내'], ['상주 상풍교', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=4&roadType=1&xp=36.7583339&yp=128.0777724&key=2008148358544&zm=10'
+  },
+  nakdong: {
+    totalDistance: '324 km', course: '상주 상풍교 → 낙동강 하굿둑',
+    description: '상주에서 낙동강 하구까지 이어지는 장거리 자전거길입니다.',
+    centers: [['안동댐', '출발점', '공식 지도 안내'], ['상주 상풍교', '인증센터', '공식 지도 안내'], ['상주보', '인증센터', '공식 지도 안내'], ['낙단보', '인증센터', '공식 지도 안내'], ['구미보', '인증센터', '공식 지도 안내'], ['칠곡보', '인증센터', '공식 지도 안내'], ['강정고령보', '인증센터', '공식 지도 안내'], ['달성보', '인증센터', '공식 지도 안내'], ['합천창녕보', '인증센터', '공식 지도 안내'], ['창녕함안보', '인증센터', '공식 지도 안내'], ['양산물문화관', '인증센터', '공식 지도 안내'], ['낙동강 하굿둑', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/bbs/road.do?key=2006176974907&bbsCtgrySn=8&bbsCtgrySubSn=49'
+  },
+  geum: {
+    totalDistance: '146 km', course: '대청댐 → 금강 하구둑',
+    description: '대청댐에서 금강 하구둑까지 백제의 숨결과 강 풍경을 따라갑니다.',
+    centers: [['대청댐', '출발점', '공식 지도 안내'], ['세종보', '인증센터', '공식 지도 안내'], ['공주보', '인증센터', '공식 지도 안내'], ['백제보', '인증센터', '공식 지도 안내'], ['익산성당포구', '인증센터', '공식 지도 안내'], ['금강하굿둑', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=6&roadType=1&xp=36.2581401&yp=127.1116202&key=2008148358544&zm=10'
+  },
+  yeongsan: {
+    totalDistance: '133 km', course: '담양댐 → 영산강 하구둑',
+    description: '담양에서 영산강 하구까지 남도의 풍경을 따라 이어집니다.',
+    centers: [['담양댐', '출발점', '공식 지도 안내'], ['메타세콰이아길', '인증센터', '공식 지도 안내'], ['담양대나무숲', '인증센터', '공식 지도 안내'], ['승촌보', '인증센터', '공식 지도 안내'], ['죽산보', '인증센터', '공식 지도 안내'], ['느러지 전망관람대', '인증센터', '공식 지도 안내'], ['영산강 하굿둑', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=7&roadType=1&xp=35.0733548&yp=126.7343273&key=2008148358544&zm=10'
+  },
+  seomjin: {
+    totalDistance: '149 km', course: '섬진강 생활체육공원 → 광양 배알도 해수욕장',
+    description: '전북 임실에서 전남 광양까지 섬진강 물길을 따라 이어지는 자전거길입니다.',
+    centers: [['섬진강댐', '출발점', '공식 지도 안내'], ['장군목', '인증센터', '공식 지도 안내'], ['향가유원지', '인증센터', '공식 지도 안내'], ['횡탄정', '인증센터', '공식 지도 안내'], ['사성암', '인증센터', '공식 지도 안내'], ['남도대교', '인증센터', '공식 지도 안내'], ['매화마을', '인증센터', '공식 지도 안내'], ['배알도수변공원', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=9&roadType=1&xp=35.2480973&yp=127.3993046&key=2008148358544&zm=10'
+  },
+  ocheon: {
+    totalDistance: '105 km', course: '충북 괴산 → 세종',
+    description: '괴산·증평·청원을 거쳐 다섯 하천을 따라 세종까지 이어집니다.',
+    centers: [['합강공원', '종점', '공식 지도 안내'], ['무심천교', '인증센터', '공식 지도 안내'], ['행촌교차로', '인증센터', '공식 지도 안내'], ['백로공원', '인증센터', '공식 지도 안내'], ['괴강교', '출발점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=10&roadType=1&xp=36.6430611&yp=127.6615165&key=2008148358544&zm=10'
+  },
+  eastGangwon: {
+    totalDistance: '242 km', course: '통일전망대 → 고포마을',
+    description: '강원 동해안을 따라 항구와 해변 풍경을 잇는 자전거길입니다.',
+    centers: [['통일전망대(민통선 내)', '출발점', '공식 지도 안내'], ['북천철교', '인증센터', '공식 지도 안내'], ['봉포해변', '인증센터', '공식 지도 안내'], ['영금정', '인증센터', '공식 지도 안내'], ['동호해변', '경유지', '공식 지도 안내'], ['경포해변', '경유지', '공식 지도 안내'], ['정동진', '경유지', '공식 지도 안내'], ['추암촛대바위', '경유지', '공식 지도 안내'], ['임원', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=11&roadType=1&xp=38.1136786&yp=128.7221259&key=2008148358544&zm=10'
+  },
+  eastGyeongbuk: {
+    totalDistance: '76 km', course: '울진 은어다리 → 해맞이공원',
+    description: '경북 동해안을 따라 해안 풍경을 즐기는 자전거길입니다.',
+    centers: [['울진 은어다리', '출발점', '공식 지도 안내'], ['망양휴게소', '인증센터', '공식 지도 안내'], ['월송정', '인증센터', '공식 지도 안내'], ['고래불해변', '인증센터', '공식 지도 안내'], ['해맞이공원', '도착점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=12&roadType=1&xp=36.7441&yp=129.462&key=2008148358544&zm=10'
+  },
+  jeju: {
+    totalDistance: '234 km', course: '제주 해안 일주',
+    description: '제주 해안도로를 따라 해변과 송악산, 쇠소깍, 성산일출봉을 지나는 순환 코스입니다.',
+    centers: [['용두암', '출발점', '공식 지도 안내'], ['다락쉼터', '인증 지점', '공식 지도 안내'], ['해거름마을공원', '인증 지점', '공식 지도 안내'], ['송악산', '인증 지점', '공식 지도 안내'], ['법환바당', '인증 지점', '공식 지도 안내'], ['쇠소깍', '인증 지점', '공식 지도 안내'], ['표선해변', '인증 지점', '공식 지도 안내'], ['성산일출봉', '인증 지점', '공식 지도 안내'], ['김녕성세기해변', '인증 지점', '공식 지도 안내'], ['함덕서우봉해변', '인증 지점', '공식 지도 안내']],
+    source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=13&roadType=1&xp=33.3974515&yp=126.4972971&key=2008148358544&zm=11'
+  }
+};
+
+const routeMapCenters = {
+  ara: [37.570595, 126.699981, 12],
+  hangang: [37.549826, 126.983513, 11],
+  namhan: [37.3264, 127.605, 10],
+  bukhan: [37.7373013, 127.5152776, 10],
+  saejae: [36.7583339, 128.0777724, 10],
+  nakdong: [35.8485767, 128.6245911, 10],
+  geum: [36.2581401, 127.1116202, 10],
+  yeongsan: [35.0733548, 126.7343273, 10],
+  seomjin: [35.2480973, 127.3993046, 10],
+  ocheon: [36.6430611, 127.6615165, 10],
+  eastGangwon: [38.1136786, 128.7221259, 10],
+  eastGyeongbuk: [36.7441, 129.462, 10],
+  jeju: [33.3974515, 126.4972971, 11]
+};
+
+function openOfficialRoute(routeId) {
+  const route = officialRoutes.find((item) => item.id === routeId);
+  const center = routeMapCenters[routeId];
+  if (!route || !center) return;
+  const [latitude, longitude, zoom] = center;
+  const url = `https://www.bike.go.kr/map/roadMap.do?roadSn=${route.roadSn}&roadType=1&xp=${latitude}&yp=${longitude}&key=2008148358544&zm=${zoom}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
+function routeMapUrl(routeId) {
+  const route = officialRoutes.find((item) => item.id === routeId);
+  const center = routeMapCenters[routeId];
+  if (!route || !center) return 'https://www.bike.go.kr/';
+  const [latitude, longitude, zoom] = center;
+  return `https://www.bike.go.kr/map/roadMap.do?roadSn=${route.roadSn}&roadType=1&xp=${latitude}&yp=${longitude}&key=2008148358544&zm=${zoom}`;
+}
+
+// Approximate overview projection for the Wikimedia South Korea map.
+// This is a schematic overlay; the map SVG does not publish georeferencing.
+const mapProjection = { west: 124.5, east: 132, north: 38.9, south: 33, x: 1771.626, y: 1672.413, verticalStretch: 1.2 };
+
+function mercatorY(latitude) {
+  const radians = Math.max(-85, Math.min(85, latitude)) * Math.PI / 180;
+  return Math.log(Math.tan(Math.PI / 4 + radians / 2));
+}
+
+function projectOfficialPoint([longitude, latitude]) {
+  const x = (longitude - mapProjection.west) / (mapProjection.east - mapProjection.west) * mapProjection.x;
+  const stretchedLatitude = (latitude - 36) * mapProjection.verticalStretch + 36;
+  const stretchedNorth = (mapProjection.north - 36) * mapProjection.verticalStretch + 36;
+  const stretchedSouth = (mapProjection.south - 36) * mapProjection.verticalStretch + 36;
+  const y = (stretchedNorth - stretchedLatitude) / (stretchedNorth - stretchedSouth) * mapProjection.y;
+  return [x, y];
+}
+
+function renderOfficialRoutes(data) {
+  const layer = document.querySelector('#official-route-layers');
+  layer.replaceChildren();
+  officialRoutes.forEach((route) => {
+    const geometry = data[route.id];
+    if (!geometry) return;
+    geometry.paths.forEach((coordinates, pathIndex) => {
+      if (coordinates.length < 2) return;
+      const projected = coordinates.map(projectOfficialPoint);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.classList.add('official-route-line', `route-${route.category}`);
+      path.dataset.route = route.id;
+      path.dataset.cardRoute = Object.keys(cardRouteToGeometry).find((cardRoute) => cardRouteToGeometry[cardRoute].includes(route.id)) || route.id;
+      path.dataset.routeName = route.title;
+      path.style.setProperty('--route-color', route.color);
+      path.style.setProperty('--route-opacity', pathIndex === 0 ? '1' : '.82');
+      path.setAttribute('d', projected.map(([x, y], index) => `${index ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' '));
+      path.setAttribute('aria-label', `${route.title} · 공식 노선`);
+      path.setAttribute('tabindex', '0');
+      path.setAttribute('role', 'button');
+      path.addEventListener('click', () => selectMapRoute(route.id));
+      path.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          selectMapRoute(route.id);
+        }
+      });
+      path.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        openOfficialRoute(route.id);
+      });
+      layer.appendChild(path);
+    });
+  });
+}
+
+fetch(new URL('route-data.json', document.currentScript?.src || location.href))
+  .then((response) => {
+    if (!response.ok) throw new Error('공식 노선 데이터를 불러오지 못했습니다.');
+    return response.json();
+  })
+  .then((data) => {
+    officialRouteData = data;
+    renderOfficialRoutes(data);
+    mapStage.dataset.routesUnavailable = 'false';
+  })
+  .catch((error) => {
+    mapStage.dataset.routesUnavailable = 'true';
+    console.error('Failed to load official route data:', error);
+  });
 
 const routeDetails = {
   hangang: {
@@ -121,7 +332,7 @@ const routeDetails = {
 function showCenters(routeKey) {
   const route = routes[routeKey];
   const detail = routeDetails[routeKey];
-  if (!route || !detail) return;
+  if (!detail) return;
 
   document.querySelector('#centers-title').textContent = `${route.name} 인증센터`;
   const total = document.createElement('strong');
@@ -148,13 +359,83 @@ function showCenters(routeKey) {
   centersPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function showOfficialRouteDetails(routeId) {
+  const route = officialRoutes.find((item) => item.id === routeId);
+  const detail = officialRouteDetails[routeId];
+  if (!route || !detail) return;
+
+  document.querySelector('#centers-title').textContent = route.title;
+  const summary = document.querySelector('#centers-summary');
+  const distance = document.createElement('strong');
+  distance.textContent = detail.totalDistance;
+  const course = document.createElement('span');
+  course.textContent = detail.course;
+  summary.replaceChildren(distance, course);
+
+  centersPanel.querySelector('.centers-note').textContent = detail.description;
+  centersSource.href = detail.source;
+  centersSource.textContent = `${route.title} 공식 코스 정보 ↗`;
+  document.querySelector('#centers-map-link').href = routeMapUrl(routeId);
+  centerList.replaceChildren();
+  (detail.centers || []).forEach(([name, status, note], index) => {
+    const item = document.createElement('li');
+    item.className = 'center-stop';
+    item.innerHTML = '<span class="stop-order"></span><span class="stop-name"><strong></strong><small></small></span><span class="stop-distance"></span>';
+    item.querySelector('.stop-order').textContent = String(index + 1).padStart(2, '0');
+    item.querySelector('.stop-name strong').textContent = name;
+    item.querySelector('.stop-name small').textContent = note;
+    item.querySelector('.stop-distance').textContent = status;
+    centerList.appendChild(item);
+  });
+  centersPanel.hidden = false;
+  centersPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function selectMapRoute(routeKey) {
+  const cardRoute = geometryToCardRoute[routeKey] || routeKey;
+  const geometryRoutes = cardRouteToGeometry[cardRoute] || [routeKey];
   mapStage.dataset.activeRoute = routeKey;
+  document.querySelectorAll('.official-route-line').forEach((path) => {
+    path.classList.toggle('is-active-route', path.dataset.route === routeKey);
+  });
   document.querySelectorAll('.route-card').forEach((card) => {
-    const selected = card.querySelector(`.card-open[data-route="${routeKey}"]`) !== null;
+    const selected = card.querySelector(`.card-open[data-route="${cardRoute}"]`) !== null;
     card.classList.toggle('is-route-selected', selected);
   });
-  if (routeDetails[routeKey]) showCenters(routeKey);
+
+  if (routeKey === cardRoute && routeDetails[cardRoute]) showCenters(cardRoute);
+  else if (officialRouteDetails[routeKey]) showOfficialRouteDetails(routeKey);
+
+  const selectedRoute = officialRoutes.find((route) => route.id === routeKey);
+  if (selectedRoute) showRouteDialog(routeKey);
+
+  const selectedCard = document.querySelector(`.card-open[data-route="${cardRoute}"]`);
+  if (selectedCard) {
+    selectedCard.closest('.route-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function showRouteDialog(routeKey) {
+  const cardRoute = geometryToCardRoute[routeKey] || routeKey;
+  const route = officialRoutes.find((item) => item.id === routeKey);
+  const officialDetail = officialRouteDetails[routeKey];
+  const card = routes[cardRoute];
+  const cardDetail = routeDetails[cardRoute];
+  const description = officialDetail?.description || card?.description || '';
+  if (!route || !officialDetail) return;
+
+  document.querySelector('#dialog-kicker').textContent = '국토종주 자전거길 상세';
+  document.querySelector('#dialog-title').textContent = route.title;
+  document.querySelector('#dialog-description').textContent = description;
+  document.querySelector('#dialog-distance').textContent = officialDetail.totalDistance || cardDetail?.totalDistance || card?.distance || '공식 안내 확인';
+  document.querySelector('#dialog-region').textContent = officialDetail.course || cardDetail?.course || card?.region || '공식 안내에서 확인';
+  document.querySelector('#dialog-level').textContent = card?.level || '공식 안내 확인';
+  document.querySelector('.dialog-note').textContent = officialDetail.centers?.length
+    ? `주요 인증 지점 ${officialDetail.centers.length}곳을 아래 상세 칸에서 확인할 수 있습니다. 실제 주행 전 공식 지도의 최신 경로와 통제 정보를 확인하세요.`
+    : '실제 주행 전 공식 지도의 최신 경로와 통제 정보를 확인하세요.';
+  document.querySelector('.dialog-link').href = officialDetail.source;
+  document.querySelector('.dialog-link').innerHTML = `${route.title} 공식 안내 <span>↗</span>`;
+  if (!dialog.open) dialog.showModal();
 }
 
 function filterRoutes() {
@@ -195,6 +476,7 @@ searchInput.addEventListener('input', filterRoutes);
 document.querySelectorAll('.card-open').forEach((button) => {
   button.addEventListener('click', () => {
     selectMapRoute(button.dataset.route);
+    showRouteDialog(button.dataset.route);
   });
 });
 
