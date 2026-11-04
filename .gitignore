@@ -1,1 +1,6 @@
 .cline/
+.wrangler/
+.dev.vars*
+*.sqlite
+*.sqlite3
+*.db

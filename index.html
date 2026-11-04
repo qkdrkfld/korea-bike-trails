@@ -23,6 +23,8 @@
   <meta name="twitter:image" content="https://korea-bike-trails.pages.dev/og-image.svg">
   <link rel="stylesheet" href="styles.css">
   <script src="script.js" defer></script>
+  <script src="board.js" defer></script>
+  <link rel="stylesheet" href="board.css">
 </head>
 <body>
   <header class="site-header" id="home">
@@ -124,6 +126,26 @@
       <div class="guide-title"><p class="section-kicker">BEFORE YOU RIDE</p><h2>출발 전, 이것만 챙겨요</h2></div>
       <div class="guide-items"><article><span class="guide-icon">↗</span><div><h3>코스와 날씨 확인</h3><p>출발 전 노선 변경, 통제 구간과 기상 정보를 확인하세요.</p></div></article><article><span class="guide-icon">◉</span><div><h3>안전 장비 착용</h3><p>헬멧과 전조등·후미등을 준비하고 안전 수칙을 지켜요.</p></div></article><article><span class="guide-icon">⌖</span><div><h3>인증센터 찾기</h3><p>국토종주 인증수첩과 자전거길 안내는 공식 사이트에서.</p></div></article></div>
       <a class="official-button" href="https://www.bike.go.kr/" target="_blank" rel="noreferrer">자전거행복나눔에서 자세히 보기 <span>↗</span></a>
+    </section>
+
+    <section class="board-section" id="board" aria-labelledby="board-title">
+      <div class="board-heading">
+        <div><p class="section-kicker">RIDE TOGETHER</p><h2 id="board-title">라이더 이야기</h2><p>코스 후기와 궁금한 점을 나눠보세요.</p></div>
+        <span class="board-count" id="board-count">게시글 0</span>
+      </div>
+      <p class="board-demo-notice" id="board-storage-notice" role="status">현재 미리보기 모드입니다. 작성한 글과 반응은 이 브라우저에만 저장되며, 다른 방문자에게는 보이지 않습니다. 공개 게시판으로 사용하려면 서버 API와 D1 연결이 필요합니다.</p>
+      <form class="board-compose" id="post-form">
+        <div class="board-form-row">
+          <label><span>닉네임</span><input name="nickname" maxlength="24" placeholder="닉네임" required autocomplete="nickname"></label>
+          <label class="post-title-field"><span>제목</span><input name="title" maxlength="100" placeholder="어떤 이야기를 나누고 싶나요?" required></label>
+        </div>
+        <label class="post-content-field"><span>내용</span><textarea name="content" maxlength="5000" rows="4" placeholder="코스 후기나 질문을 적어주세요." required></textarea></label>
+        <div class="board-compose-footer"><span>제목은 100자, 내용은 5,000자까지 입력할 수 있습니다.</span><button class="board-submit" type="submit">글 등록 <span>↗</span></button></div>
+      </form>
+      <div class="board-toolbar"><label class="board-search"><span aria-hidden="true">⌕</span><span class="sr-only">게시글 검색</span><input id="board-search" type="search" placeholder="게시글 검색" autocomplete="off"></label><label class="board-sort-label" for="board-sort">정렬</label><select id="board-sort" class="board-sort"><option value="latest">최신순</option><option value="likes">좋아요순</option></select></div>
+      <p class="board-feedback" id="board-feedback" role="status" aria-live="polite"></p>
+      <div class="post-list" id="post-list" aria-live="polite"></div>
+      <p class="board-empty" id="board-empty">아직 게시글이 없습니다. 첫 이야기를 남겨보세요.</p>
     </section>
   </main>
 
