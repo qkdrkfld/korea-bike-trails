@@ -145,8 +145,8 @@ export default {
       return await handleApi(request, env, url.pathname);
     } catch (error) {
       if (error instanceof Error && /요청/.test(error.message)) return json({ error: error.message }, 400);
-      console.error('Board API error:', error);
-      return json({ error: '서버에서 요청을 처리하지 못했습니다.' }, 500);
+      console.error('Board API error:', error?.stack || error);
+      return json({ error: '서버에서 요청을 처리하지 못했습니다.', diagnostic: String(error?.message || error) }, 500);
     }
   },
 };
