@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">대한민국 국토종주 자전거길 안내</title>
+  <desc id="desc">대한민국 지도 위에 주요 국토종주 자전거길 노선을 그린 공유 이미지</desc>
+  <defs>
+    <pattern id="contours" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M-8 30 10 19l12 5 20-14M4 48l17-10 14 3 17-12" fill="none" stroke="#17382f" stroke-opacity=".08" stroke-width="1.2"/>
+    </pattern>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#17382f" flood-opacity=".12"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="#f5f2e8"/>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#contours)"/>
+  <path d="M0 0h20v630H0z" fill="#e77845"/>
+  <g transform="translate(80 78)">
+    <circle cx="22" cy="22" r="22" fill="#17382f"/>
+    <g fill="none" stroke="#f5f2e8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="14" cy="24" r="6"/><circle cx="31" cy="24" r="6"/>
+      <path d="m14 24 6-12 6 12H14l4-8h8l5 8m-11-12h-4"/>
+    </g>
+    <text x="58" y="19" fill="#17382f" font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="18" font-weight="700" letter-spacing="2">KOREA BIKE TRAILS</text>
+    <text x="58" y="43" fill="#67766e" font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14">RIDE THE COUNTRY</text>
+  </g>
+  <g transform="translate(82 206)">
+    <text x="0" y="0" fill="#60796b" font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="18" font-weight="700" letter-spacing="4">대한민국 자전거길 안내</text>
+    <text x="-3" y="82" fill="#17382f" font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="58" font-weight="800" letter-spacing="-2">대한민국 국토종주</text>
+    <text x="-3" y="155" fill="#17382f" font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="58" font-weight="800" letter-spacing="-2">자전거길 안내</text>
+    <path d="M0 188h80" stroke="#e77845" stroke-width="5" stroke-linecap="round"/>
+    <text x="0" y="235" fill="#67766e" font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="22">코스와 인증센터 정보를 한눈에</text>
+  </g>
+  <g filter="url(#shadow)" transform="translate(756 72)">
+    <rect width="366" height="486" rx="28" fill="#e9e9da" stroke="#fffdf7" stroke-width="8"/>
+    <path d="M201 35 225 29 247 42 265 39 282 51 302 47 320 63 337 64 345 84 355 91 350 108 360 123 349 139 356 156 342 172 346 189 331 202 333 219 317 231 318 247 302 258 303 275 288 286 288 303 273 315 270 332 257 345 256 362 242 375 238 392 224 405 210 404 199 419 183 414 172 425 157 420 147 407 131 404 127 389 113 382 115 367 101 361 101 346 90 336 98 322 86 308 93 295 86 280 99 266 97 251 112 238 108 224 124 211 122 197 139 186 137 171 152 162 148 148 165 140 161 126 178 117 176 103 194 95 193 80 211 72 212 57 227 53 229 40Z" fill="#b8c4a5" stroke="#87967d" stroke-width="2"/>
+    <path d="M230 83c-19 14-29 27-42 32-12 5-21 0-33 10-10 9-13 20-25 24-14 4-24-2-37 7-12 8-20 17-31 20" fill="none" stroke="#79c9c2" stroke-width="13" stroke-linecap="round" opacity=".9"/>
+    <path d="M230 83c-19 14-29 27-42 32-12 5-21 0-33 10-10 9-13 20-25 24-14 4-24-2-37 7-12 8-20 17-31 20" fill="none" stroke="#17382f" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 11"/>
+    <path d="M245 139c-20 10-32 21-45 24-15 3-24-4-39 5-15 8-23 19-36 23-12 4-25-1-39 6" fill="none" stroke="#e77845" stroke-width="4" stroke-linecap="round"/>
+    <path d="M173 233c-12 11-25 19-39 21-16 2-23-8-37-4-14 3-23 14-37 18" fill="none" stroke="#357d75" stroke-width="4" stroke-linecap="round"/>
+    <path d="M130 268c13 11 24 19 38 20 15 1 25-8 40-4 14 4 20 16 35 17" fill="none" stroke="#cf7550" stroke-width="4" stroke-linecap="round"/>
+    <path d="M245 182c7 24 9 43 3 61-5 16-15 24-13 40 2 17 11 28 8 45-3 14-13 24-12 39" fill="none" stroke="#52766b" stroke-width="4" stroke-linecap="round"/>
+    <path d="M186 356c18-7 36-5 48 3 11 8 11 20 3 27-11 9-31 8-46 2-13-5-20-20-5-32Z" fill="none" stroke="#e77845" stroke-width="4" stroke-dasharray="4 6"/>
+    <g fill="#fffdf7" stroke="#e77845" stroke-width="4">
+      <circle cx="230" cy="83" r="7"/><circle cx="120" cy="156" r="7"/><circle cx="164" cy="290" r="7"/><circle cx="218" cy="363" r="7"/>
+    </g>
+    <g font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="12" font-weight="700" fill="#17382f">
+      <text x="259" y="87">한강</text><text x="61" y="154">금강</text><text x="119" y="315">낙동강</text><text x="211" y="405">제주환상</text>
+    </g>
+    <rect x="22" y="437" width="322" height="30" rx="15" fill="#17382f"/>
+    <text x="183" y="457" text-anchor="middle" fill="#f5f2e8" font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="12" font-weight="700" letter-spacing="1">RIDE THE COUNTRY</text>
+  </g>
+  <text x="82" y="574" fill="#7b887e" font-family="Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif" font-size="14">한강 · 낙동강 · 금강 · 제주환상 자전거길</text>
+  <circle cx="1110" cy="580" r="5" fill="#e77845"/>
+</svg>
