@@ -8,7 +8,7 @@ const routes = {
   },
   nakdong: {
     name: '낙동강 자전거길',
-    distance: '389 km',
+    distance: '324 km',
     region: '상주 상풍교–낙동강 하굿둑',
     level: '도전 코스',
     description: '안동에서 부산 을숙도까지 낙동강 물길을 따라 내려가는 긴 여정입니다. 강과 산, 여러 도시를 지나며 장거리 종주에 도전할 수 있습니다.'
@@ -38,6 +38,7 @@ const dialogClose = document.querySelector('.dialog-close');
 const centersPanel = document.querySelector('#centers-panel');
 const centerList = document.querySelector('#center-list');
 const centersSource = document.querySelector('#centers-source');
+const mapStage = document.querySelector('#map-stage');
 let activeFilter = 'all';
 
 const routeDetails = {
@@ -46,7 +47,7 @@ const routeDetails = {
     course: '아라한강갑문 → 여의도 → 뚝섬전망콤플렉스 또는 광나루자전거공원 → 팔당대교',
     source: 'https://www.bike.go.kr/bbs/road.do?key=2006176973579&bbsCtgrySn=8&bbsCtgrySubSn=45',
     sourceLabel: '한강 종주 자전거길 공식 안내',
-    map: 'https://www.bike.go.kr/resource/bike/img/content/sub01/info_map02.jpg',
+    mapUrl: 'https://www.bike.go.kr/map/roadMap.do?roadSn=2&roadType=1&xp=37.549826&yp=126.983513&key=2008148358544&zm=11',
     centers: [
     ['아라한강갑문', '출발점', '한강 종주 자전거길 시작'],
     ['여의도', '구간 거리 미확인', '한강 하류 인증 지점'],
@@ -57,11 +58,11 @@ const routeDetails = {
     note: '공식 자전거행복나눔 안내는 아라한강갑문–팔당대교 56 km를 제시합니다. 여의도·뚝섬전망콤플렉스·광나루를 거치는 경로 선택이 있어 센터별 정확한 구간 km는 공식 안내에 별도 제공되지 않습니다.'
   },
   nakdong: {
-    totalDistance: '389 km',
+    totalDistance: '324 km',
     course: '상주 상풍교 → 낙동강 하굿둑',
     source: 'https://www.bike.go.kr/bbs/road.do?key=2006176974907&bbsCtgrySn=8&bbsCtgrySubSn=49',
     sourceLabel: '낙동강 자전거길 공식 안내',
-    map: 'https://www.bike.go.kr/resource/bike/img/content/sub01/info_map06.jpg',
+    mapUrl: 'https://www.bike.go.kr/map/roadMap.do?roadSn=5&roadType=1&xp=35.8485767&yp=128.6245911&key=2008148358544&zm=10',
     centers: [
       ['상주 상풍교', '출발점', '새재 자전거길과 연결'],
       ['상주보', '구간 거리 미확인', '정확한 구간 km는 공식 자료에서 별도 제공되지 않음'],
@@ -82,7 +83,7 @@ const routeDetails = {
     course: '대청댐 → 금강 하구둑',
     source: 'https://www.bike.go.kr/bbs/road.do?key=2008068569235&bbsCtgrySn=8&bbsCtgrySubSn=50',
     sourceLabel: '금강 자전거길 공식 안내',
-    map: 'https://www.bike.go.kr/resource/bike/img/content/sub01/info_map07.jpg',
+    mapUrl: 'https://www.bike.go.kr/map/roadMap.do?roadSn=6&roadType=1&xp=36.2581401&yp=127.1116202&key=2008148358544&zm=10',
     centers: [
     ['대청댐', '출발점', '대전·청주 인근'],
       ['세종보', '구간 거리 미확인', '대청댐 하류'],
@@ -99,7 +100,7 @@ const routeDetails = {
     course: '용두암에서 시계 반대 방향으로 제주 해안 일주',
     source: 'https://www.bike.go.kr/bbs/road.do?key=2006176979144&bbsCtgrySn=8&bbsCtgrySubSn=56',
     sourceLabel: '제주환상 자전거길 공식 안내',
-    map: 'https://www.bike.go.kr/resource/bike/img/content/sub01/info_map13.jpg',
+    mapUrl: 'https://www.bike.go.kr/map/roadMap.do?roadSn=13&roadType=1&xp=33.3974515&yp=126.4972971&key=2008148358544&zm=11',
     centers: [
       ['용두암', '출발·도착', '제주환상 자전거길 시작점'],
       ['다락쉼터', '구간 거리 미확인', '제주 서북 해안'],
@@ -132,16 +133,8 @@ function showCenters(routeKey) {
   centersPanel.querySelector('.centers-note').textContent = detail.note;
   centersSource.href = detail.source;
   centersSource.textContent = `${detail.sourceLabel} ↗`;
+  document.querySelector('#centers-map-link').href = detail.mapUrl;
   centerList.replaceChildren();
-  const officialMap = document.createElement('img');
-  officialMap.className = 'official-route-map';
-  officialMap.src = detail.map;
-  officialMap.alt = `${route.name} 공식 노선 참고 지도`;
-  officialMap.loading = 'lazy';
-  centerList.parentElement.insertBefore(officialMap, centerList);
-  centersPanel.querySelectorAll(".official-route-map").forEach((image) => {
-    if (image !== officialMap) image.remove();
-  });
   detail.centers.forEach(([name, distance, sublabel], index) => {
     const item = document.createElement('li');
     item.className = 'center-stop';
@@ -153,6 +146,15 @@ function showCenters(routeKey) {
   });
   centersPanel.hidden = false;
   centersPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function selectMapRoute(routeKey) {
+  mapStage.dataset.activeRoute = routeKey;
+  document.querySelectorAll('.route-card').forEach((card) => {
+    const selected = card.querySelector(`.card-open[data-route="${routeKey}"]`) !== null;
+    card.classList.toggle('is-route-selected', selected);
+  });
+  if (routeDetails[routeKey]) showCenters(routeKey);
 }
 
 function filterRoutes() {
@@ -192,9 +194,20 @@ searchInput.addEventListener('input', filterRoutes);
 
 document.querySelectorAll('.card-open').forEach((button) => {
   button.addEventListener('click', () => {
-    const route = routes[button.dataset.route];
-    if (!route) return;
-    showCenters(button.dataset.route);
+    selectMapRoute(button.dataset.route);
+  });
+});
+
+document.querySelectorAll('.route-layer[data-route]').forEach((path) => {
+  path.addEventListener('click', () => selectMapRoute(path.dataset.route));
+  path.setAttribute('tabindex', '0');
+  path.setAttribute('role', 'button');
+  path.setAttribute('aria-label', `${routes[path.dataset.route]?.name || '자전거길'} 강조`);
+  path.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      selectMapRoute(path.dataset.route);
+    }
   });
 });
 
