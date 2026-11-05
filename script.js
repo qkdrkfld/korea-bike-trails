@@ -456,7 +456,7 @@ function renderCalculatedCenters(routeId) {
     course.textContent = loopRoutes.includes(routeId) ? `${first} 순환` : `${first} → ${last}`;
     document.querySelector('#centers-summary').replaceChildren(total, course);
   }
-  const basis = '인증센터 이름·주소는 자전거행복나눔 공식 안내 기준이고, 센터 간 거리는 공식 지도 경로 좌표를 따라 계산한 약 값입니다.';
+  const basis = '인증센터 이름·주소는 자전거행복나눔 공식 안내 기준이고 센터 간 거리는 공식 지도 경로 좌표를 따라 계산한 약 값입니다.';
   const detail = data.complete && data.scaledToOfficial
     ? `계산값은 공식 노선 길이(${data.officialKm} km)에 맞춰 보정했습니다.`
     : `좌표를 찾지 못한 센터 주변 구간은 '구간 거리 미산정'으로 표시하며, 이 목록의 합계(${data.computedKm} km)는 공식 길이(${data.officialKm} km)와 다를 수 있습니다.`;
@@ -601,6 +601,10 @@ document.querySelectorAll('.route-layer[data-route]').forEach((path) => {
 });
 
 document.querySelector('.centers-close').addEventListener('click', () => {
+  centersPanel.hidden = true;
+});
+
+document.querySelector('#centers-map').addEventListener('click', () => {
   centersPanel.hidden = true;
 });
 

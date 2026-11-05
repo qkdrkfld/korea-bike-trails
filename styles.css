@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap");
 :root{--ink:#17382f;--deep:#102b25;--muted:#67766e;--river:#79c9c2;--paper:#f5f2e8;--white:#fffdf7;--orange:#e77845;--sage:#b8c4a5;--line:#d9ddcf;--serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",serif;--sans:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;--page:1160px}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:92px}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.65 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit;text-decoration:none}button,input{font:inherit}button{color:inherit}.site-header{height:78px;padding:0 max(32px,calc((100% - var(--page))/2));display:flex;align-items:center;justify-content:space-between;background:var(--paper);border-bottom:1px solid #17382f1b;position:relative;z-index:2}.brand{display:flex;gap:11px;align-items:center;font-weight:800;font-size:17px;letter-spacing:-.055em;line-height:1.1}.brand small{display:block;font-size:10px;font-weight:500;letter-spacing:.02em;color:var(--muted);margin-top:5px}.brand-mark{width:39px;height:39px;display:grid;place-items:center;background:var(--ink);border-radius:50%}.brand-mark svg{width:25px;fill:none;stroke:var(--paper);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.main-nav{display:flex;align-items:center;gap:37px;font-size:12px;font-weight:600}.main-nav a:hover,.text-link:hover{color:#c45b31}.header-cta{border-bottom:1px solid var(--ink);padding:8px 0;font-size:12px;font-weight:700}.header-cta span{margin-left:16px;color:var(--orange)}
 .hero{height:590px;max-width:1440px;margin:0 auto;position:relative;overflow:hidden;display:grid;grid-template-columns:45% 55%;background:var(--paper)}.hero:before{content:"";position:absolute;inset:0 auto 0 0;width:47%;background:#f8f5ed;z-index:0}.hero-copy{position:relative;z-index:1;padding:102px 0 55px max(54px,calc((100vw - var(--page))/2));}.eyebrow{margin:0 0 21px;color:#5f7968;font-size:11px;font-weight:700;letter-spacing:.08em}.live-dot{display:inline-block;width:7px;height:7px;background:var(--orange);border-radius:50%;margin:0 9px 1px 0;box-shadow:0 0 0 4px #e7784520}.hero h1{font-size:clamp(42px,5.1vw,68px);line-height:1.2;letter-spacing:-.078em;margin:0;font-weight:750}.period{color:var(--orange)}.hero-description{font-size:14px;line-height:1.95;color:var(--muted);margin:23px 0 25px}.primary-button{display:inline-flex;align-items:center;gap:36px;background:var(--ink);color:#fffdf7;padding:14px 18px;font-size:12px;font-weight:700;transition:background .2s,transform .2s}.primary-button:hover{background:#285245;transform:translateY(-2px)}.primary-button span{color:var(--river);font-size:17px}.hero-note{position:absolute;bottom:46px;left:max(54px,calc((100vw - var(--page))/2));display:flex;align-items:center;gap:11px;font:italic 13px var(--serif);color:#718074}.note-rule{width:33px;height:1px;background:var(--orange)}.route-art{position:relative;overflow:hidden;background:#e9e9da;display:flex;align-items:center;justify-content:center}.route-art:before,.route-art:after{content:"";position:absolute;border:1px solid #17382f15;border-radius:50%;width:650px;height:650px;left:50%;top:52%;transform:translate(-50%,-50%)}.route-art:after{width:530px;height:530px}.map-caption{position:absolute;z-index:1;left:34px;right:34px;top:27px;display:flex;justify-content:space-between;color:#60736a;font-size:9px;letter-spacing:.13em}.map-caption span+span{letter-spacing:0}.map-actions{position:absolute;z-index:2;top:52px;left:34px;display:flex;gap:8px}.map-actions a{padding:5px 8px;border:1px solid #aeb9aa;color:#496b5a;background:#f5f2e8e8;font-size:8px}.map-actions a:hover{background:#fff}.map-stage{position:relative;z-index:1;width:min(96%,510px);aspect-ratio:1771.626 / 1672.413;height:auto;max-height:82%;display:block;overflow:hidden;background:#e5e9df;font:inherit;box-shadow:0 0 0 1px #17382f1a}.land-shadow,.land,.terrain-lines,.river,.island,.map-label,.north-compass,.texture-overlay,.route-pin{display:none}.official-route-line{fill:none;stroke:var(--route-color);stroke-opacity:var(--route-opacity,.82);stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;pointer-events:stroke;cursor:pointer;transition:stroke-width .2s,stroke-opacity .2s,filter .2s}.official-route-line:hover,.official-route-line:focus-visible,.official-route-line.is-active-route{stroke-width:5.5;stroke-opacity:1;filter:drop-shadow(0 0 1px #fffdf7)}.official-route-line:focus-visible{outline:none}.map-stage[data-active-route]:not([data-active-route="all"]) .official-route-line:not(.is-active-route){stroke-opacity:.12}.map-route-name{fill:#214c3f;font:700 9px var(--sans);paint-order:stroke;stroke:#fffdf7;stroke-width:3px;stroke-linejoin:round;pointer-events:none}.map-route-legend{position:absolute;z-index:2;left:18px;bottom:16px;display:grid;grid-template-columns:repeat(2,auto);gap:4px 10px;padding:9px 11px;background:#fffdf0e8;border:1px solid #d9ddcf;color:#455e50;font-size:8px;line-height:1.3}.map-route-legend span{display:flex;align-items:center;gap:5px;white-space:nowrap}.map-route-legend i{display:inline-block;width:14px;height:3px;border-radius:2px}.legend-han{background:#e77845}.legend-nak{background:#477b69}.legend-geum{background:#bf8b34}.legend-yeongsan{background:#6387a8}.legend-seomjin{background:#a86c8d}.legend-ocheon{background:#7779ab}.legend-east{background:#3284a0}.legend-jeju{background:#d95f4a}
@@ -49,3 +50,193 @@
 .centers-visual .centers-summary{margin:12px 0}
 .centers-visual .centers-map-preview{margin:0}
 @media(max-width:900px){.centers-panel{grid-template-columns:1fr;gap:20px}.centers-visual{position:static}.centers-map{height:300px}}
+
+/* ===== UI/UX 개선 (ui-ux-pro-max): 가독성·대비·터치 크기·일관된 토큰 ===== */
+:root{--ink:#12332a;--deep:#0f2a23;--muted:#55665c;--paper:#f6f7f3;--white:#fff;--line:#e0e6dd;--orange:#e1642f;--accent-text:#b4430f;--radius:16px;--shadow:0 1px 2px #12332a0d,0 6px 18px #12332a0f;--shadow-hover:0 2px 4px #12332a10,0 14px 32px #12332a1c;--sans:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+body{font-size:16px;line-height:1.65;background:var(--paper)}
+.leaflet-container{isolation:isolate;font-family:var(--sans)}
+a,button,summary{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent-text);outline-offset:3px;border-radius:4px}
+
+/* 헤더: 상단 고정 + 큰 글씨 */
+.site-header{position:sticky;top:0;z-index:2000;height:68px;background:#ffffffeb;backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+.brand{font-size:18px}.brand small{font-size:12px;margin-top:3px}
+.main-nav{gap:8px;font-size:15px}
+.main-nav a{padding:10px 14px;border-radius:999px;transition:background .2s,color .2s}
+.main-nav a:hover{background:#eef2eb;color:var(--ink)}
+.header-cta{border:0;border-radius:999px;background:var(--ink);color:#fff;padding:11px 18px;font-size:14px;min-height:44px;display:inline-flex;align-items:center;transition:background .2s}
+.header-cta:hover{background:#24493c;color:#fff}.header-cta span{color:#ffd2bd;margin-left:10px}
+
+/* 히어로 */
+.hero{background:var(--paper)}.hero:before{background:var(--paper)}
+.eyebrow{font-size:13px;color:#3f6050}
+.hero h1{letter-spacing:-.05em}
+.hero-description{font-size:16px;line-height:1.8;color:var(--muted)}
+.primary-button{border-radius:999px;padding:14px 22px;font-size:15px;min-height:48px;box-shadow:var(--shadow)}
+.primary-button:hover{background:#24493c}
+.hero-note{font-size:14px;color:#5b6d62}
+.route-art{background:#e8ede4}
+.map-caption{font-size:11px;color:#4c6156}
+.map-actions a{font-size:12px;padding:8px 12px;min-height:34px;border-radius:999px;display:inline-flex;align-items:center;background:#fffffff2;border-color:#cdd8cb;color:#2f5443;transition:background .2s}
+.map-stage{border-radius:var(--radius);box-shadow:0 0 0 1px #12332a1a,var(--shadow)}
+.map-route-legend{font-size:11px;border-radius:12px;background:#fffffff2;gap:5px 14px;padding:10px 12px}
+.hero-bottom{font-size:13px;height:44px}.hero-bottom b{font-size:16px}
+
+/* 섹션 제목 */
+.route-section{padding:80px 0 72px}
+.section-kicker{font-size:12px;letter-spacing:.12em;color:#3f6050}
+.section-heading h2,.guide-title h2{font-size:34px}
+.section-heading>div>p:last-child{font-size:15px}
+.text-link{font-size:14px;border-bottom-color:#7b8f82;min-height:44px;display:inline-flex;align-items:center}
+
+/* 검색·필터 */
+.route-tools{gap:16px;margin-bottom:22px}
+.search-box{width:320px;height:48px;padding:0 14px;background:#fff;border:1px solid #cfd8cc;border-radius:12px;transition:border-color .2s,box-shadow .2s}
+.search-box:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px #12332a1f}
+.search-box input{font-size:15px}.search-box input::placeholder{color:#6b7c71}
+kbd{font-size:12px;color:#5f7166;border-radius:4px}
+.filters{gap:8px;flex-wrap:wrap}
+.filter-button{min-height:44px;padding:8px 16px;font-size:14px;color:#3f5247;background:#fff;border:1px solid #d3dcd0;border-radius:999px}
+.filter-button:hover{border-color:#8fa397;background:#f2f6ef}
+.filter-button.is-active{background:var(--ink);border-color:var(--ink);color:#fff}
+.filter-button span{font-size:12px;color:#8fd3cb}
+
+/* 카드 */
+.route-grid{gap:20px}
+.route-card{border-radius:var(--radius);border:1px solid var(--line);background:#fff;overflow:hidden;box-shadow:var(--shadow);transition:transform .25s,box-shadow .25s}
+.route-card.is-route-selected{outline:3px solid var(--orange);outline-offset:2px}
+.card-open:focus-visible{outline-offset:-3px}
+.card-index{font-size:12px;color:#34493f}
+.card-art .card-index{border-radius:999px;padding:3px 9px}
+.card-body{padding:18px 18px 16px}
+.card-meta{font-size:12px;color:#5b6d62}.card-arrow{font-size:16px;color:#5b6d62}
+.card-body h3{font-size:20px;min-height:30px;margin:6px 0 4px}
+.card-body>p{font-size:13px;color:var(--muted);min-height:40px}
+.card-stats{font-size:12px;color:#5b6d62;border-top-color:#edf0e9;padding-top:12px}.card-stats b{font-size:14px;color:var(--ink)}
+.official-map-cta{font-size:13px;color:#2f5443;border-top-color:#edf0e9}
+.empty-state{font-size:15px;border-radius:var(--radius)}
+.data-note{font-size:13px;color:#5f7166}
+@media(hover:hover){.route-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover)}.map-actions a:hover{background:#fff}}
+
+/* 지도 컨트롤 글씨 */
+.mini-route-map .leaflet-control-attribution,.map-stage .leaflet-control-attribution,.centers-map .leaflet-control-attribution{font-size:10px}
+.mini-route-map .leaflet-control-scale-line,.map-stage .leaflet-control-scale-line,.centers-map .leaflet-control-scale-line{font-size:10px}
+
+/* 노선 상세 패널 */
+.centers-panel{padding:28px;border-radius:20px;box-shadow:var(--shadow);border-color:var(--line);gap:32px}
+.centers-map{border-radius:var(--radius);height:420px}
+.centers-heading h3{font-size:26px}
+.centers-close{min-height:44px;padding:8px 16px;font-size:14px;border-radius:999px;background:#fff;transition:background .2s}
+.centers-close:hover{background:#f2f6ef}
+.centers-summary{font-size:14px;border-radius:12px;background:#eef3ea;padding:14px 16px}
+.centers-map-preview{border-radius:12px}.preview-label{font-size:12px}.preview-copy{font-size:14px}.preview-arrow{font-size:13px}
+.center-stop{min-height:64px;grid-template-columns:40px minmax(0,1fr) auto;gap:12px}
+.stop-order{font-size:13px;color:#5f7166}
+.stop-name strong{font-size:16px}.stop-name small{font-size:13px;color:#5b6d62}
+.stop-distance{font-size:14px;color:#2f5443}
+.center-pin span{width:26px;height:26px;font:700 12px/22px var(--sans)}
+.centers-note{font-size:13px;color:#5f7166}
+.centers-source{font-size:14px;color:#2f5443;min-height:44px;display:inline-flex;align-items:center;border-bottom:0;text-decoration:underline;text-underline-offset:4px}
+
+/* 안내 섹션·푸터 */
+.guide-section{background:#eaf0e6}
+.guide-items h3{font-size:16px}.guide-items p{font-size:14px;line-height:1.7;color:var(--muted)}
+.guide-icon{font-size:20px;color:#4d7360}
+.official-button{font-size:14px;min-height:44px;display:inline-flex;align-items:center;border-radius:999px;padding:10px 18px;background:#fff;border-color:#c5d1c3}
+.footer-brand{font-size:15px}.site-footer p{font-size:14px}.site-footer>span{font-size:13px;color:#b5c3b8}
+
+@media(max-width:900px){.route-grid{gap:16px}.card-body>p{font-size:13px}.centers-panel{padding:22px}.centers-map{height:320px}}
+@media(max-width:600px){
+.site-header{height:60px}.brand{font-size:16px}.brand small{font-size:11px}.main-nav{gap:2px;font-size:14px}.main-nav a{padding:10px}.header-cta{font-size:13px;padding:10px 14px}
+.hero{min-height:0}.hero-copy{min-height:0}.hero-description{font-size:15px}.hero-note{font-size:13px}.eyebrow{font-size:12px}
+.map-caption{font-size:10px}.map-actions a{font-size:12px;padding:7px 10px}.map-route-legend{font-size:10px;gap:4px 10px;padding:8px 10px}.hero-bottom{font-size:11px;height:38px}
+.section-heading h2{font-size:26px}.section-heading>div>p:last-child{font-size:14px}.text-link{font-size:13px}
+.route-grid{grid-template-columns:1fr;gap:14px}
+.card-art{height:170px;flex-basis:170px}.card-body{min-height:0;padding:16px}.card-body h3{font-size:19px;min-height:0}.card-body>p{font-size:14px;min-height:0}
+.card-meta{font-size:12px}.card-stats{font-size:12px;flex-wrap:nowrap;min-height:0}.card-stats b{font-size:14px}.card-index{font-size:12px}
+.filter-button{font-size:13px;padding:8px 14px}.search-box input{font-size:16px}
+.centers-panel{padding:18px 14px;border-radius:16px}.centers-map{height:280px}.centers-heading h3{font-size:22px}
+.stop-name strong{font-size:15px}.stop-name small{font-size:12px}.stop-distance{font-size:13px}
+.guide-items p{font-size:14px}.guide-items h3{font-size:15px}.official-button{font-size:14px}
+.site-footer p{font-size:13px}.site-footer>span{font-size:12px}}
+@media(max-width:360px){.card-stats{display:flex;flex-wrap:wrap;gap:4px 12px}.card-stats span{display:inline;margin-top:0}}
+/* 지도 영역: 히어로 왼쪽 크림색에서 청록으로 이어지는 그라데이션 */
+.route-art{background:linear-gradient(120deg,#f8f5ed 0%,#e3ecdc 38%,#cfe3d8 72%,#b9d8d3 100%)}
+.map-stage{background:linear-gradient(160deg,#f3f6ea 0%,#e1ecdc 50%,#cde3da 100%);box-shadow:0 0 0 1px #12332a14,0 10px 30px #1b4a4033}
+.map-caption{color:#3f5f52}
+/* 전체 지도의 회색 타일을 페이지의 크림·연두 톤으로 물들인다 (노선 선은 다른 레이어라 영향 없음) */
+.map-stage .leaflet-tile-pane{filter:sepia(.55) hue-rotate(38deg) saturate(.9) brightness(1.03)}
+.map-stage .leaflet-container,.map-stage.leaflet-container{background:#dfeadb}
+.mini-route-map .leaflet-tile-pane{filter:sepia(.55) hue-rotate(38deg) saturate(.9) brightness(1.03)}
+.mini-route-map{background:#dfeadb}
+/* 범례: 좌측 하단 → 좌측 상단 (캡션·공식 지도 버튼 아래) */
+.map-route-legend{top:98px;bottom:auto;left:34px}
+@media(max-width:600px){.map-route-legend{top:66px;bottom:auto;left:20px}}
+.centers-map .leaflet-tile-pane{filter:sepia(.55) hue-rotate(38deg) saturate(.9) brightness(1.03)}
+.centers-map{background:#dfeadb;cursor:pointer}
+
+/* ===== 디자인 개편: 국토종주 표지판 =====
+   파랑 = 자전거길 표지판·노면, 빨강 = 인증센터 부스, 검정 = 아스팔트 */
+:root{--ink:#0c3f86;--deep:#121821;--muted:#53647a;--paper:#f2f6fa;--line:#d3deea;--orange:#d8332a;--accent-text:#b3201a;--river:#a9c9f0;--radius:6px;--shadow:none;--shadow-hover:none;--display:"Black Han Sans","Noto Sans KR",sans-serif}
+.hero h1,.section-heading h2,.guide-title h2,.centers-heading h3{font-family:var(--display);font-weight:400;letter-spacing:-.02em}
+.hero h1{color:#fff;line-height:1.18}
+
+/* 헤더 */
+.site-header{background:#fffffff2}
+.main-nav a{border-radius:var(--radius)}.main-nav a:hover{background:#e6eef7}
+.header-cta{border-radius:var(--radius)}.header-cta:hover{background:#0a3270}.header-cta span{color:#bcd3f1}
+.brand-mark{border-radius:var(--radius)}
+
+/* 히어로: 왼쪽은 표지판 판, 아래 띠에는 도로 중앙선 */
+.hero:before{background:var(--ink)}
+.eyebrow{color:#cfe0f6;letter-spacing:.02em}
+.live-dot{background:#fff;box-shadow:0 0 0 4px #ffffff33}
+.hero-description{color:#dbe8f8}
+.primary-button{background:var(--orange);color:#fff;border-radius:var(--radius);box-shadow:none}
+.primary-button:hover{background:var(--accent-text)}.primary-button span{color:#fff}
+.hero-note{color:#bcd3f1}.note-rule{background:#fff}
+.hero-bottom{background:linear-gradient(90deg,#ffffffb3 0 20px,transparent 20px 40px) 0 0/40px 2px repeat-x,var(--deep);color:#dbe3ee}
+.hero-bottom b{color:#fff}
+
+/* 지도: 파랑 계열 색조, 도장은 인증 도장처럼 빨강 */
+.route-art{background:linear-gradient(120deg,#d9e7f5 0%,#e7f0f8 55%,#f2f6fa 100%)}
+.route-art:before,.route-art:after{border-color:#0c3f8620}
+.map-stage{background:linear-gradient(160deg,#f2f7fc 0%,#dbe8f5 100%);box-shadow:0 0 0 1px #0c3f8622}
+.map-stage .leaflet-tile-pane,.mini-route-map .leaflet-tile-pane,.centers-map .leaflet-tile-pane{filter:sepia(.5) hue-rotate(165deg) saturate(1) brightness(1.02)}
+.map-stage .leaflet-container,.map-stage.leaflet-container,.mini-route-map,.centers-map{background:#dbe8f5}
+.map-caption{color:#3d5878}
+.map-actions a{border-radius:var(--radius);border-color:#bcd0e6;color:var(--ink)}
+.map-route-legend{border-radius:var(--radius);border-color:var(--line)}
+.map-stamp{border:2px solid #d8332a99;color:var(--orange)}
+
+/* 섹션·검색·필터 */
+.section-kicker{color:var(--ink);letter-spacing:.04em}
+.text-link{border-bottom-color:var(--ink)}
+.search-box{border-color:#c4d3e3;border-radius:var(--radius)}
+.search-box:focus-within{box-shadow:0 0 0 3px #0c3f8626}
+.filter-button{border-radius:var(--radius);color:#34506f;border-color:#c4d3e3}
+.filter-button:hover{border-color:var(--ink);background:#eaf1f9}
+.filter-button span{color:var(--orange)}.filter-button.is-active span{color:#bcd3f1}
+
+/* 카드: 그림자 대신 테두리, 호버는 파란 윤곽 */
+.route-card{border-radius:var(--radius);box-shadow:none}
+.card-meta,.card-arrow,.card-stats{color:var(--muted)}
+.card-stats,.official-map-cta{border-top-color:#e3ebf4}.official-map-cta{color:var(--ink)}
+@media(hover:hover){.route-card:hover{transform:none;border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}}
+
+/* 패널·안내·푸터 */
+.centers-panel{border-radius:var(--radius)}
+.guide-section{background:#e1ebf5}.guide-icon{color:var(--ink)}
+.official-button{border-color:var(--ink);color:var(--ink);border-radius:var(--radius)}
+.site-footer p{font-style:normal}.site-footer>span a{color:#c5d6ee}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+.hero-description{word-break:keep-all;text-wrap:balance;padding-right:32px}
+
+/* 전체 지도: 오른쪽 칸을 가득 채움(아래 검은 띠 높이만큼 제외), 도장 숨김, 범례는 우측 상단 */
+.map-stamp{display:none}
+.map-stage{width:100%;height:calc(100% - 44px);max-height:none;aspect-ratio:auto;border-radius:0;box-shadow:none;align-self:flex-start}
+.map-route-legend{top:56px;bottom:auto;left:auto;right:16px}
+.map-scale{bottom:56px;left:20px}
+@media(max-width:600px){.map-stage{height:calc(100% - 32px)}.map-route-legend{top:62px;right:8px;left:auto}.map-scale{bottom:42px}}
+.map-actions>span{font-size:12px;line-height:1.3;color:#3d5878;align-self:center}
+@media(max-width:600px){.map-actions>span{font-size:9px}.map-route-legend{top:74px}}
