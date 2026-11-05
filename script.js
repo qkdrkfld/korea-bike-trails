@@ -8,8 +8,8 @@ const routes = {
   },
   nakdong: {
     name: '낙동강 자전거길',
-    distance: '324 km',
-    region: '상주 상풍교–낙동강 하굿둑',
+    distance: '389 km',
+    region: '안동댐–낙동강 하굿둑',
     level: '도전 코스',
     description: '안동에서 부산 을숙도까지 낙동강 물길을 따라 내려가는 긴 여정입니다. 강과 산, 여러 도시를 지나며 장거리 종주에 도전할 수 있습니다.'
   },
@@ -33,8 +33,6 @@ const cards = [...document.querySelectorAll('.route-card')];
 const filters = [...document.querySelectorAll('.filter-button')];
 const searchInput = document.querySelector('#route-search');
 const emptyState = document.querySelector('#empty-state');
-const dialog = document.querySelector('#route-dialog');
-const dialogClose = document.querySelector('.dialog-close');
 const centersPanel = document.querySelector('#centers-panel');
 const centerList = document.querySelector('#center-list');
 const centersSource = document.querySelector('#centers-source');
@@ -60,9 +58,31 @@ const officialRoutes = [
 
 const cardRouteToGeometry = {
   hangang: ['ara', 'hangang', 'namhan', 'bukhan'],
-  nakdong: ['saejae', 'nakdong'],
+  nakdong: ['nakdong'],
   geum: ['geum'],
-  jeju: ['jeju']
+  jeju: ['jeju'],
+  saejae: ['saejae'],
+  ocheon: ['ocheon'],
+  yeongsan: ['yeongsan'],
+  seomjin: ['seomjin'],
+  eastGangwon: ['eastGangwon'],
+  eastGyeongbuk: ['eastGyeongbuk']
+};
+
+const miniMapColors = {
+  hangang: '#e77845',
+  namhan: '#e77845',
+  bukhan: '#e77845',
+  ara: '#d28c33',
+  saejae: '#477b69',
+  nakdong: '#477b69',
+  geum: '#bf8b34',
+  jeju: '#d95f4a',
+  yeongsan: '#6387a8',
+  seomjin: '#a86c8d',
+  ocheon: '#7779ab',
+  eastGangwon: '#3284a0',
+  eastGyeongbuk: '#3284a0'
 };
 
 const geometryToCardRoute = Object.fromEntries(
@@ -101,7 +121,7 @@ const officialRouteDetails = {
     source: 'https://www.bike.go.kr/map/roadMap.do?roadSn=4&roadType=1&xp=36.7583339&yp=128.0777724&key=2008148358544&zm=10'
   },
   nakdong: {
-    totalDistance: '324 km', course: '상주 상풍교 → 낙동강 하굿둑',
+    totalDistance: '389 km', course: '안동댐 → 낙동강 하굿둑',
     description: '상주에서 낙동강 하구까지 이어지는 장거리 자전거길입니다.',
     centers: [['안동댐', '출발점', '공식 지도 안내'], ['상주 상풍교', '인증센터', '공식 지도 안내'], ['상주보', '인증센터', '공식 지도 안내'], ['낙단보', '인증센터', '공식 지도 안내'], ['구미보', '인증센터', '공식 지도 안내'], ['칠곡보', '인증센터', '공식 지도 안내'], ['강정고령보', '인증센터', '공식 지도 안내'], ['달성보', '인증센터', '공식 지도 안내'], ['합천창녕보', '인증센터', '공식 지도 안내'], ['창녕함안보', '인증센터', '공식 지도 안내'], ['양산물문화관', '인증센터', '공식 지도 안내'], ['낙동강 하굿둑', '도착점', '공식 지도 안내']],
     source: 'https://www.bike.go.kr/bbs/road.do?key=2006176974907&bbsCtgrySn=8&bbsCtgrySubSn=49'
@@ -183,41 +203,53 @@ function routeMapUrl(routeId) {
   return `https://www.bike.go.kr/map/roadMap.do?roadSn=${route.roadSn}&roadType=1&xp=${latitude}&yp=${longitude}&key=2008148358544&zm=${zoom}`;
 }
 
-// Approximate overview projection for the Wikimedia South Korea map.
-// This is a schematic overlay; the map SVG does not publish georeferencing.
-const mapProjection = { west: 124.5, east: 132, north: 38.9, south: 33, x: 1771.626, y: 1672.413, verticalStretch: 1.2 };
+// 전체 지도와 카드 지도가 같은 바탕·선 굵기·축척을 쓰도록 공통으로 만든다.
+const routeLineWeight = 3.5;
 
-function mercatorY(latitude) {
-  const radians = Math.max(-85, Math.min(85, latitude)) * Math.PI / 180;
-  return Math.log(Math.tan(Math.PI / 4 + radians / 2));
+function createRouteMap(element) {
+  const map = L.map(element, {
+    zoomControl: false,
+    dragging: false,
+    touchZoom: false,
+    doubleClickZoom: false,
+    scrollWheelZoom: false,
+    boxZoom: false,
+    keyboard: false,
+    tap: false,
+    zoomSnap: 0.25,
+  });
+  map.attributionControl.setPrefix(false);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxNativeZoom: 16,
+    maxZoom: 18,
+    attribution: 'Tiles © <a href="https://www.esri.com/" target="_blank" rel="noreferrer">Esri</a>',
+  }).addTo(map);
+  L.control.scale({ position: 'bottomright', imperial: false, maxWidth: 70 }).addTo(map);
+  return map;
 }
 
-function projectOfficialPoint([longitude, latitude]) {
-  const x = (longitude - mapProjection.west) / (mapProjection.east - mapProjection.west) * mapProjection.x;
-  const stretchedLatitude = (latitude - 36) * mapProjection.verticalStretch + 36;
-  const stretchedNorth = (mapProjection.north - 36) * mapProjection.verticalStretch + 36;
-  const stretchedSouth = (mapProjection.south - 36) * mapProjection.verticalStretch + 36;
-  const y = (stretchedNorth - stretchedLatitude) / (stretchedNorth - stretchedSouth) * mapProjection.y;
-  return [x, y];
-}
+const toLatLngs = (path) => path.map(([longitude, latitude]) => [latitude, longitude]);
 
 function renderOfficialRoutes(data) {
-  const layer = document.querySelector('#official-route-layers');
-  layer.replaceChildren();
+  if (!window.L) return;
+  const map = createRouteMap(mapStage);
+  map.fitBounds([[33, 125.8], [38.7, 129.8]], { padding: [16, 16] }); // 선의 SVG 요소는 지도 위치가 정해져야 만들어진다
   officialRoutes.forEach((route) => {
-    const geometry = data[route.id];
-    if (!geometry) return;
-    geometry.paths.forEach((coordinates, pathIndex) => {
+    data[route.id]?.paths.forEach((coordinates, pathIndex) => {
       if (coordinates.length < 2) return;
-      const projected = coordinates.map(projectOfficialPoint);
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.classList.add('official-route-line', `route-${route.category}`);
+      const line = L.polyline(toLatLngs(coordinates), {
+        weight: routeLineWeight,
+        lineJoin: 'round',
+        className: 'official-route-line',
+      }).addTo(map);
+
+      const path = line.getElement();
+      path.classList.add(`route-${route.category}`);
       path.dataset.route = route.id;
-      path.dataset.cardRoute = Object.keys(cardRouteToGeometry).find((cardRoute) => cardRouteToGeometry[cardRoute].includes(route.id)) || route.id;
+      path.dataset.cardRoute = geometryToCardRoute[route.id] || route.id;
       path.dataset.routeName = route.title;
       path.style.setProperty('--route-color', route.color);
       path.style.setProperty('--route-opacity', pathIndex === 0 ? '1' : '.82');
-      path.setAttribute('d', projected.map(([x, y], index) => `${index ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' '));
       path.setAttribute('aria-label', `${route.title} · 공식 노선`);
       path.setAttribute('tabindex', '0');
       path.setAttribute('role', 'button');
@@ -232,8 +264,42 @@ function renderOfficialRoutes(data) {
         event.preventDefault();
         openOfficialRoute(route.id);
       });
-      layer.appendChild(path);
     });
+  });
+}
+
+function renderCardRouteMaps(data) {
+  if (!window.L) return;
+  document.querySelectorAll('.mini-route-map[data-route-map]').forEach((element) => {
+    const cardRoute = element.dataset.routeMap;
+    const geometryIds = cardRouteToGeometry[cardRoute] || [cardRoute];
+    const allPaths = geometryIds.flatMap((id) => data[id]?.paths || []).filter((path) => path.length > 1);
+    if (!allPaths.length) return;
+
+    const map = createRouteMap(element);
+    const routeColor = miniMapColors[cardRoute] || '#477b69';
+    const lines = allPaths.map((path) => L.polyline(toLatLngs(path), {
+      color: routeColor,
+      weight: routeLineWeight,
+      lineJoin: 'round',
+      interactive: false,
+    }).addTo(map));
+
+    const endpoints = allPaths.flatMap((path) => [path[0], path[path.length - 1]]);
+    endpoints
+      .filter(([lon, lat], index) => !endpoints.slice(0, index).some(([otherLon, otherLat]) => Math.hypot(otherLon - lon, otherLat - lat) < 0.01))
+      .forEach(([longitude, latitude]) => {
+        L.circleMarker([latitude, longitude], {
+          radius: 4,
+          color: routeColor,
+          weight: 2,
+          fillColor: '#fffdf7',
+          fillOpacity: 1,
+          interactive: false,
+        }).addTo(map);
+      });
+
+    map.fitBounds(L.featureGroup(lines).getBounds(), { padding: [18, 18] });
   });
 }
 
@@ -245,12 +311,18 @@ fetch(new URL('route-data.json', document.currentScript?.src || location.href))
   .then((data) => {
     officialRouteData = data;
     renderOfficialRoutes(data);
+    renderCardRouteMaps(data);
     mapStage.dataset.routesUnavailable = 'false';
   })
   .catch((error) => {
     mapStage.dataset.routesUnavailable = 'true';
     console.error('Failed to load official route data:', error);
   });
+
+fetch(new URL('center-data.json', document.currentScript?.src || location.href))
+  .then((response) => (response.ok ? response.json() : null))
+  .then((data) => { centerData = data; })
+  .catch((error) => console.error('Failed to load center data:', error));
 
 const routeDetails = {
   hangang: {
@@ -269,8 +341,8 @@ const routeDetails = {
     note: '공식 자전거행복나눔 안내는 아라한강갑문–팔당대교 56 km를 제시합니다. 여의도·뚝섬전망콤플렉스·광나루를 거치는 경로 선택이 있어 센터별 정확한 구간 km는 공식 안내에 별도 제공되지 않습니다.'
   },
   nakdong: {
-    totalDistance: '324 km',
-    course: '상주 상풍교 → 낙동강 하굿둑',
+    totalDistance: '389 km',
+    course: '안동댐 → 낙동강 하굿둑',
     source: 'https://www.bike.go.kr/bbs/road.do?key=2006176974907&bbsCtgrySn=8&bbsCtgrySubSn=49',
     sourceLabel: '낙동강 자전거길 공식 안내',
     mapUrl: 'https://www.bike.go.kr/map/roadMap.do?roadSn=5&roadType=1&xp=35.8485767&yp=128.6245911&key=2008148358544&zm=10',
@@ -329,6 +401,68 @@ const routeDetails = {
   }
 };
 
+let centersMap = null;
+
+// 선택한 길의 큰 지도: 노선선과 번호가 붙은 인증센터 핀
+function renderCentersMap(routeId) {
+  const element = document.querySelector('#centers-map');
+  centersMap?.remove();
+  centersMap = null;
+  const paths = (officialRouteData?.[routeId]?.paths || []).filter((path) => path.length > 1);
+  element.hidden = !window.L || !paths.length;
+  if (element.hidden) return;
+
+  const map = centersMap = createRouteMap(element);
+  const color = officialRoutes.find((route) => route.id === routeId)?.color || '#477b69';
+  const lines = paths.map((path) => L.polyline(toLatLngs(path), {
+    color, weight: routeLineWeight, lineJoin: 'round', interactive: false,
+  }).addTo(map));
+  (centerData?.[routeId]?.centers || []).forEach((center, index) => {
+    if (center.lat == null) return;
+    const icon = L.divIcon({ className: 'center-pin', html: `<span style="border-color:${color}">${index + 1}</span>`, iconSize: [22, 22] });
+    L.marker([center.lat, center.lon], { icon, title: center.name, keyboard: false }).addTo(map);
+  });
+  map.fitBounds(L.featureGroup(lines).getBounds(), { padding: [28, 28] });
+}
+
+let centerData = null;
+const centerTypeLabels = { '수·종': '수첩판매·종주인증센터', 종: '종주인증센터', 무: '무인인증센터', '': '노선 시·종점' };
+const loopRoutes = ['jeju'];
+
+// 공식 인증센터 목록(주소·유형)과, 공식 지도 경로 좌표를 따라 계산한 센터 간 거리로 목록을 다시 그린다.
+function renderCalculatedCenters(routeId) {
+  const data = centerData?.[routeId];
+  if (!data) return;
+  centerList.replaceChildren();
+  data.centers.forEach((center, index) => {
+    const item = document.createElement('li');
+    item.className = 'center-stop';
+    item.innerHTML = '<span class="stop-order"></span><span class="stop-name"><strong></strong><small></small></span><span class="stop-distance"></span>';
+    item.querySelector('.stop-order').textContent = String(index + 1).padStart(2, '0');
+    item.querySelector('.stop-name strong').textContent = center.name;
+    item.querySelector('.stop-name small').textContent = `${centerTypeLabels[center.type] || center.type} · ${center.address}`;
+    let distance = '구간 거리 미산정';
+    if (center.legKm != null) distance = index === 0 && loopRoutes.includes(routeId) ? `순환 복귀 ${center.legKm} km` : `${center.legKm} km`;
+    else if (index === 0) distance = '출발점';
+    item.querySelector('.stop-distance').textContent = distance;
+    centerList.appendChild(item);
+  });
+  const first = data.centers[0].name;
+  const last = data.centers[data.centers.length - 1].name;
+  if (data.officialKm) {
+    const total = document.createElement('strong');
+    total.textContent = `${data.officialKm} km`;
+    const course = document.createElement('span');
+    course.textContent = loopRoutes.includes(routeId) ? `${first} 순환` : `${first} → ${last}`;
+    document.querySelector('#centers-summary').replaceChildren(total, course);
+  }
+  const basis = '인증센터 이름·주소는 자전거행복나눔 공식 안내 기준이고, 센터 간 거리는 공식 지도 경로 좌표를 따라 계산한 약 값입니다.';
+  const detail = data.complete && data.scaledToOfficial
+    ? `계산값은 공식 노선 길이(${data.officialKm} km)에 맞춰 보정했습니다.`
+    : `좌표를 찾지 못한 센터 주변 구간은 '구간 거리 미산정'으로 표시하며, 이 목록의 합계(${data.computedKm} km)는 공식 길이(${data.officialKm} km)와 다를 수 있습니다.`;
+  centersPanel.querySelector('.centers-note').textContent = `${basis} ${detail} 주행 전 최신 노선과 통제 정보를 공식 안내에서 확인하세요.`;
+}
+
 function showCenters(routeKey) {
   const route = routes[routeKey];
   const detail = routeDetails[routeKey];
@@ -355,7 +489,9 @@ function showCenters(routeKey) {
     item.querySelector('.stop-distance').textContent = distance;
     centerList.appendChild(item);
   });
+  renderCalculatedCenters(routeKey);
   centersPanel.hidden = false;
+  renderCentersMap(routeKey);
   centersPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -387,7 +523,9 @@ function showOfficialRouteDetails(routeId) {
     item.querySelector('.stop-distance').textContent = status;
     centerList.appendChild(item);
   });
+  renderCalculatedCenters(routeId);
   centersPanel.hidden = false;
+  renderCentersMap(routeId);
   centersPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -406,36 +544,6 @@ function selectMapRoute(routeKey) {
   if (routeKey === cardRoute && routeDetails[cardRoute]) showCenters(cardRoute);
   else if (officialRouteDetails[routeKey]) showOfficialRouteDetails(routeKey);
 
-  const selectedRoute = officialRoutes.find((route) => route.id === routeKey);
-  if (selectedRoute) showRouteDialog(routeKey);
-
-  const selectedCard = document.querySelector(`.card-open[data-route="${cardRoute}"]`);
-  if (selectedCard) {
-    selectedCard.closest('.route-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
-}
-
-function showRouteDialog(routeKey) {
-  const cardRoute = geometryToCardRoute[routeKey] || routeKey;
-  const route = officialRoutes.find((item) => item.id === routeKey);
-  const officialDetail = officialRouteDetails[routeKey];
-  const card = routes[cardRoute];
-  const cardDetail = routeDetails[cardRoute];
-  const description = officialDetail?.description || card?.description || '';
-  if (!route || !officialDetail) return;
-
-  document.querySelector('#dialog-kicker').textContent = '국토종주 자전거길 상세';
-  document.querySelector('#dialog-title').textContent = route.title;
-  document.querySelector('#dialog-description').textContent = description;
-  document.querySelector('#dialog-distance').textContent = officialDetail.totalDistance || cardDetail?.totalDistance || card?.distance || '공식 안내 확인';
-  document.querySelector('#dialog-region').textContent = officialDetail.course || cardDetail?.course || card?.region || '공식 안내에서 확인';
-  document.querySelector('#dialog-level').textContent = card?.level || '공식 안내 확인';
-  document.querySelector('.dialog-note').textContent = officialDetail.centers?.length
-    ? `주요 인증 지점 ${officialDetail.centers.length}곳을 아래 상세 칸에서 확인할 수 있습니다. 실제 주행 전 공식 지도의 최신 경로와 통제 정보를 확인하세요.`
-    : '실제 주행 전 공식 지도의 최신 경로와 통제 정보를 확인하세요.';
-  document.querySelector('.dialog-link').href = officialDetail.source;
-  document.querySelector('.dialog-link').innerHTML = `${route.title} 공식 안내 <span>↗</span>`;
-  if (!dialog.open) dialog.showModal();
 }
 
 function filterRoutes() {
@@ -476,7 +584,6 @@ searchInput.addEventListener('input', filterRoutes);
 document.querySelectorAll('.card-open').forEach((button) => {
   button.addEventListener('click', () => {
     selectMapRoute(button.dataset.route);
-    showRouteDialog(button.dataset.route);
   });
 });
 
@@ -496,12 +603,6 @@ document.querySelectorAll('.route-layer[data-route]').forEach((path) => {
 document.querySelector('.centers-close').addEventListener('click', () => {
   centersPanel.hidden = true;
 });
-
-dialogClose.addEventListener('click', () => dialog.close());
-dialog.addEventListener('click', (event) => {
-  if (event.target === dialog) dialog.close();
-});
-dialog.addEventListener('close', clearSearch);
 
 document.addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {

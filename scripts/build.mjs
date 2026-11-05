@@ -12,6 +12,7 @@ const files = [
   'og-image.svg',
   'national-bike-route-map.png',
   'route-data.json',
+  'center-data.json',
 ];
 
 await rm(output, { recursive: true, force: true });
