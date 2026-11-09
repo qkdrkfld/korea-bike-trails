@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://korea-bike-trails.qwerty123a03-975.workers.dev/sitemap.xml

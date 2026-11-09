@@ -13,6 +13,9 @@ const files = [
   'national-bike-route-map.png',
   'route-data.json',
   'center-data.json',
+  'robots.txt',
+  'sitemap.xml',
+  'google276f98d801cbc50d.html',
 ];
 
 await rm(output, { recursive: true, force: true });
