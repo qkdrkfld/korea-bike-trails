@@ -12,6 +12,10 @@ function json(data, status = 200) {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store',
       'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
     },
   });
 }
@@ -42,8 +46,31 @@ function isRateLimited(key) {
 async function readJson(request) {
   const declaredLength = Number(request.headers.get('Content-Length') || 0);
   if (declaredLength > MAX_JSON_BYTES) throw new Error('요청이 너무 큽니다.');
-  const text = await request.text();
-  if (new TextEncoder().encode(text).length > MAX_JSON_BYTES) throw new Error('요청이 너무 큽니다.');
+  if (!request.body) throw new Error('JSON 요청 형식이 올바르지 않습니다.');
+  const reader = request.body.getReader();
+  const chunks = [];
+  let byteLength = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      byteLength += value.byteLength;
+      if (byteLength > MAX_JSON_BYTES) {
+        await reader.cancel();
+        throw new Error('요청이 너무 큽니다.');
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const buffer = new Uint8Array(byteLength);
+  let offset = 0;
+  for (const chunk of chunks) {
+    buffer.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  const text = new TextDecoder().decode(buffer);
   try {
     return JSON.parse(text);
   } catch {
@@ -108,14 +135,24 @@ async function toggleLike(request, env, postId) {
   if (!hash) return json({ error: '방문자 식별 정보가 없습니다. 페이지를 새로고침해 주세요.' }, 400);
   const post = await env.DB.prepare('SELECT id FROM posts WHERE id = ?').bind(postId).first();
   if (!post) return json({ error: '게시글을 찾을 수 없습니다.' }, 404);
-  const existing = await env.DB.prepare('SELECT 1 AS liked FROM likes WHERE post_id = ? AND visitor_id_hash = ?')
+  const deleted = await env.DB.prepare('DELETE FROM likes WHERE post_id = ? AND visitor_id_hash = ? RETURNING post_id')
     .bind(postId, hash).first();
-  if (existing) {
-    await env.DB.prepare('DELETE FROM likes WHERE post_id = ? AND visitor_id_hash = ?').bind(postId, hash).run();
+  if (deleted) {
     return json({ liked: false });
   }
-  await env.DB.prepare('INSERT INTO likes (post_id, visitor_id_hash) VALUES (?, ?)').bind(postId, hash).run();
+  await env.DB.prepare('INSERT OR IGNORE INTO likes (post_id, visitor_id_hash) VALUES (?, ?)').bind(postId, hash).run();
   return json({ liked: true });
+}
+
+function secureAssetResponse(response, request) {
+  const headers = new Headers(response.headers);
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('X-Frame-Options', 'DENY');
+  headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  headers.set('Content-Security-Policy', "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: blob: https://server.arcgisonline.com; connect-src 'self'; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'");
+  if (new URL(request.url).protocol === 'https:') headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
 async function handleApi(request, env, pathname) {
@@ -134,20 +171,26 @@ async function handleApi(request, env, pathname) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
-    if (!['GET', 'POST'].includes(request.method)) return json({ error: '지원하지 않는 메서드입니다.' }, 405);
+    if (!url.pathname.startsWith('/api/')) {
+      return secureAssetResponse(await env.ASSETS.fetch(request), request);
+    }
+    if (!['GET', 'POST'].includes(request.method)) {
+      return secureAssetResponse(json({ error: '지원하지 않는 메서드입니다.' }, 405), request);
+    }
 
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
     if (request.method === 'POST' && isRateLimited(`${ip}:${Math.floor(Date.now() / RATE_LIMIT_WINDOW_MS)}`)) {
-      return json({ error: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' }, 429);
+      return secureAssetResponse(json({ error: '요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.' }, 429), request);
     }
 
     try {
-      return await handleApi(request, env, url.pathname);
+      return secureAssetResponse(await handleApi(request, env, url.pathname), request);
     } catch (error) {
-      if (error instanceof Error && /요청/.test(error.message)) return json({ error: error.message }, 400);
+      if (error instanceof Error && /요청/.test(error.message)) {
+        return secureAssetResponse(json({ error: error.message }, 400), request);
+      }
       console.error('Board API error:', error?.stack || error);
-      return json({ error: '서버에서 요청을 처리하지 못했습니다.', diagnostic: String(error?.message || error) }, 500);
+      return secureAssetResponse(json({ error: '서버에서 요청을 처리하지 못했습니다.' }, 500), request);
     }
   },
 };

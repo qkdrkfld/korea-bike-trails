@@ -16,6 +16,7 @@ const files = [
   'robots.txt',
   'sitemap.xml',
   'google276f98d801cbc50d.html',
+  '_headers',
 ];
 
 await rm(output, { recursive: true, force: true });
