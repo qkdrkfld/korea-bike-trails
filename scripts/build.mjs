@@ -11,6 +11,7 @@ const files = [
   'board.js',
   'og-image.svg',
   'national-bike-route-map.png',
+  'south-korea-base.svg',
   'route-data.json',
   'center-data.json',
   'robots.txt',

@@ -22,12 +22,7 @@
   <meta name="twitter:title" content="대한민국 국토종주 자전거길 안내">
   <meta name="twitter:description" content="한강·낙동강부터 제주환상 자전거길까지 코스와 인증센터 정보를 살펴보세요. 출발 전에 확인할 주행 안내도 함께 담았습니다.">
   <meta name="twitter:image" content="https://korea-bike-trails.qwerty123a03-975.workers.dev/og-image.svg">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" defer></script>
   <script src="script.js" defer></script>
   <script src="board.js" defer></script>
   <link rel="stylesheet" href="board.css">
@@ -55,6 +50,8 @@
         <div class="map-caption"><span>RIDE THE COUNTRY</span><span>국토종주 자전거길 개략도</span></div>
         <div class="map-actions"><a href="https://www.bike.go.kr/map/roadMap.do?roadSn=1&amp;roadType=1&amp;xp=37.570595&amp;yp=126.699981&amp;key=2008148358544&amp;zm=12" target="_blank" rel="noreferrer">공식 지도에서 정확한 노선 확인 ↗</a><span>노선 개략도 · 선을 누르면 코스가 강조됩니다</span></div>
         <div class="map-stage" id="map-stage" data-active-route="all" role="group" aria-label="대한민국 자전거길 지도. 선을 선택하면 노선을 강조합니다.">
+          <img class="overview-map-base" src="south-korea-base.svg" alt="대한민국 위치도 바탕 지도">
+          <svg class="overview-route-svg" viewBox="0 0 1771.626 1672.413" role="img" aria-label="국토종주 자전거길 개략 경로"><g id="official-route-layers"></g></svg>
         </div>
         <span class="map-stamp">RIDE<br><b>대한민국</b></span>
         <span class="map-scale"><i></i><i></i><i></i> 공식 경로 좌표 · 13개 코스</span>

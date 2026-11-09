@@ -14,6 +14,10 @@
 @media(max-width:360px){.main-nav a:first-child{display:none}.hero h1{font-size:41px}.card-stats{display:block}.card-stats span{display:block;margin-top:3px}.text-link{white-space:normal;text-align:right}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}/* Coordinate-accurate mini route maps shared with the national overview. */
 .mini-route-map{display:block;width:100%;height:100%;overflow:hidden;background:#e5e9df;font:inherit;cursor:pointer}
+.mini-route-map svg{display:block;width:100%;height:100%}
+.mini-route-halo{fill:none;stroke:#fffdf7;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.mini-route-line{fill:none;stroke:var(--mini-route-color);stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.mini-route-point{fill:#fffdf7;stroke:var(--mini-route-color);stroke-width:2;vector-effect:non-scaling-stroke}
 .mini-route-map:not([data-map-ready="true"]),.map-stage:not([data-map-ready="true"]){background:linear-gradient(110deg,#e4ebee 25%,#f3f6f5 38%,#e4ebee 62%);background-size:300% 100%;animation:map-skeleton 1.4s ease-in-out infinite}
 .mini-route-map[data-map-ready="true"],.map-stage[data-map-ready="true"]{animation:none}
 @keyframes map-skeleton{to{background-position:-150% 0}}

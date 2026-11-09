@@ -205,6 +205,34 @@ function routeMapUrl(routeId) {
 
 // 전체 지도와 카드 지도가 같은 바탕·선 굵기·축척을 쓰도록 공통으로 만든다.
 const routeLineWeight = 3.5;
+const overviewProjection = { west: 124.5, east: 132, north: 38.9, south: 33, width: 1771.626, height: 1672.413 };
+
+let leafletPromise;
+function ensureLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  if (leafletPromise) return leafletPromise;
+
+  leafletPromise = new Promise((resolve, reject) => {
+    if (!document.querySelector('link[data-leaflet-styles]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
+      link.dataset.leafletStyles = 'true';
+      document.head.append(link);
+    }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
+    script.async = true;
+    script.onload = () => window.L ? resolve(window.L) : reject(new Error('지도 라이브러리를 사용할 수 없습니다.'));
+    script.onerror = () => reject(new Error('지도 라이브러리를 불러오지 못했습니다.'));
+    document.head.append(script);
+  }).catch((error) => {
+    leafletPromise = null;
+    throw error;
+  });
+
+  return leafletPromise;
+}
 
 function createRouteMap(element) {
   const map = L.map(element, {
@@ -230,26 +258,61 @@ function createRouteMap(element) {
 
 const toLatLngs = (path) => path.map(([longitude, latitude]) => [latitude, longitude]);
 
-function renderOfficialRoutes(data) {
-  if (!window.L) return;
-  const map = createRouteMap(mapStage);
-  map.fitBounds([[33, 125.8], [38.7, 129.8]], { padding: [16, 16] }); // 선의 SVG 요소는 지도 위치가 정해져야 만들어진다
-  officialRoutes.forEach((route) => {
-    data[route.id]?.paths.forEach((coordinates, pathIndex) => {
-      if (coordinates.length < 2) return;
-      const line = L.polyline(toLatLngs(coordinates), {
-        weight: routeLineWeight,
-        lineJoin: 'round',
-        className: 'official-route-line',
-      }).addTo(map);
+function projectOverviewPoint([longitude, latitude]) {
+  const radians = Math.max(-85, Math.min(85, latitude)) * Math.PI / 180;
+  const northRadians = overviewProjection.north * Math.PI / 180;
+  const southRadians = overviewProjection.south * Math.PI / 180;
+  const mercator = Math.log(Math.tan(Math.PI / 4 + radians / 2));
+  const north = Math.log(Math.tan(Math.PI / 4 + northRadians / 2));
+  const south = Math.log(Math.tan(Math.PI / 4 + southRadians / 2));
+  return [
+    (longitude - overviewProjection.west) / (overviewProjection.east - overviewProjection.west) * overviewProjection.width,
+    (north - mercator) / (north - south) * overviewProjection.height,
+  ];
+}
 
-      const path = line.getElement();
-      path.classList.add(`route-${route.category}`);
+function simplifyRoutePoints(points, tolerance = 0.003) {
+  if (points.length <= 2) return points;
+  const [startX, startY] = points[0];
+  const [endX, endY] = points[points.length - 1];
+  const dx = endX - startX;
+  const dy = endY - startY;
+  let farthestIndex = 0;
+  let farthestDistance = 0;
+  const denominator = dx * dx + dy * dy;
+  for (let index = 1; index < points.length - 1; index += 1) {
+    const [x, y] = points[index];
+    const projection = denominator
+      ? Math.max(0, Math.min(1, ((x - startX) * dx + (y - startY) * dy) / denominator))
+      : 0;
+    const distance = Math.hypot(x - (startX + projection * dx), y - (startY + projection * dy));
+    if (distance > farthestDistance) {
+      farthestDistance = distance;
+      farthestIndex = index;
+    }
+  }
+  if (farthestDistance <= tolerance) return [points[0], points.at(-1)];
+  const left = simplifyRoutePoints(points.slice(0, farthestIndex + 1), tolerance);
+  const right = simplifyRoutePoints(points.slice(farthestIndex), tolerance);
+  return [...left.slice(0, -1), ...right];
+}
+
+function renderOfficialRoutes(data) {
+  const layer = document.querySelector('#official-route-layers');
+  layer.replaceChildren();
+  officialRoutes.forEach((route) => {
+    data[route.id]?.paths.forEach((rawCoordinates, pathIndex) => {
+      const coordinates = simplifyRoutePoints(rawCoordinates);
+      if (coordinates.length < 2) return;
+      const projected = coordinates.map(projectOverviewPoint);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.classList.add('official-route-line', `route-${route.category}`);
       path.dataset.route = route.id;
       path.dataset.cardRoute = geometryToCardRoute[route.id] || route.id;
       path.dataset.routeName = route.title;
       path.style.setProperty('--route-color', route.color);
       path.style.setProperty('--route-opacity', pathIndex === 0 ? '1' : '.82');
+      path.setAttribute('d', projected.map(([x, y], index) => `${index ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' '));
       path.setAttribute('aria-label', `${route.title} · 공식 노선`);
       path.setAttribute('tabindex', '0');
       path.setAttribute('role', 'button');
@@ -264,43 +327,97 @@ function renderOfficialRoutes(data) {
         event.preventDefault();
         openOfficialRoute(route.id);
       });
+      layer.appendChild(path);
     });
   });
+  mapStage.dataset.mapReady = 'true';
 }
 
 function renderCardRouteMaps(data) {
-  if (!window.L) return;
-  document.querySelectorAll('.mini-route-map[data-route-map]').forEach((element) => {
+  const renderOneCardMap = (element) => {
     const cardRoute = element.dataset.routeMap;
     const geometryIds = cardRouteToGeometry[cardRoute] || [cardRoute];
-    const allPaths = geometryIds.flatMap((id) => data[id]?.paths || []).filter((path) => path.length > 1);
+    const allPaths = geometryIds.flatMap((id) => data[id]?.paths || [])
+      .filter((path) => path.length > 1)
+      .map((path) => simplifyRoutePoints(path));
     if (!allPaths.length) return;
 
-    const map = createRouteMap(element);
+    const projectMiniPoint = ([longitude, latitude]) => {
+      const radians = Math.max(-85, Math.min(85, latitude)) * Math.PI / 180;
+      const mercatorY = Math.log(Math.tan(Math.PI / 4 + radians / 2));
+      return [(longitude + 180) / 360, (1 - mercatorY / Math.PI) / 2];
+    };
+    const projectedPaths = allPaths.map((path) => path.map(projectMiniPoint));
+    const points = projectedPaths.flat();
     const routeColor = miniMapColors[cardRoute] || '#477b69';
-    const lines = allPaths.map((path) => L.polyline(toLatLngs(path), {
-      color: routeColor,
-      weight: routeLineWeight,
-      lineJoin: 'round',
-      interactive: false,
-    }).addTo(map));
+    const left = Math.min(...points.map(([x]) => x));
+    const right = Math.max(...points.map(([x]) => x));
+    const top = Math.min(...points.map(([, y]) => y));
+    const bottom = Math.max(...points.map(([, y]) => y));
+    const spanX = Math.max(right - left, 0.00001);
+    const spanY = Math.max(bottom - top, 0.00001);
+    const padX = spanX * 0.14;
+    const padY = spanY * 0.18;
+    const bounds = { left: left - padX, top: top - padY, width: spanX + padX * 2, height: spanY + padY * 2 };
+    const width = 320;
+    const height = 160;
+    const scale = Math.min(width / bounds.width, height / bounds.height);
+    const offsetX = (width - bounds.width * scale) / 2;
+    const offsetY = (height - bounds.height * scale) / 2;
+    const toSvg = ([x, y]) => [offsetX + (x - bounds.left) * scale, offsetY + (y - bounds.top) * scale];
 
-    const endpoints = allPaths.flatMap((path) => [path[0], path[path.length - 1]]);
-    endpoints
-      .filter(([lon, lat], index) => !endpoints.slice(0, index).some(([otherLon, otherLat]) => Math.hypot(otherLon - lon, otherLat - lat) < 0.01))
-      .forEach(([longitude, latitude]) => {
-        L.circleMarker([latitude, longitude], {
-          radius: 4,
-          color: routeColor,
-          weight: 2,
-          fillColor: '#fffdf7',
-          fillOpacity: 1,
-          interactive: false,
-        }).addTo(map);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    svg.setAttribute('aria-hidden', 'true');
+    const routeLayer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const endpoints = [];
+    projectedPaths.forEach((path) => {
+      const projected = path.map(toSvg);
+      const d = projected.map(([x, y], index) => `${index ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' ');
+      const halo = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      halo.setAttribute('d', d);
+      halo.setAttribute('class', 'mini-route-halo');
+      routeLayer.appendChild(halo);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      line.setAttribute('d', d);
+      line.setAttribute('class', 'mini-route-line');
+      line.style.setProperty('--mini-route-color', routeColor);
+      routeLayer.appendChild(line);
+      endpoints.push(projected[0], projected.at(-1));
+    });
+    svg.appendChild(routeLayer);
+
+    endpoints.filter(([x, y], index) => !endpoints.slice(0, index).some(([otherX, otherY]) => Math.hypot(x - otherX, y - otherY) < 1.5))
+      .forEach(([cx, cy]) => {
+        const marker = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        marker.setAttribute('cx', cx.toFixed(2));
+        marker.setAttribute('cy', cy.toFixed(2));
+        marker.setAttribute('r', '3');
+        marker.setAttribute('class', 'mini-route-point');
+        marker.style.setProperty('--mini-route-color', routeColor);
+        svg.appendChild(marker);
       });
 
-    map.fitBounds(L.featureGroup(lines).getBounds(), { padding: [18, 18] });
-  });
+    // Approximate scale at the route midpoint; the route geometry itself remains in Web Mercator.
+    const meanLatitude = allPaths.flat().reduce((sum, [, lat]) => sum + lat, 0) / allPaths.flat().length;
+    const metersPerPixel = 156543.03392 * Math.cos(meanLatitude * Math.PI / 180) / (2 ** 7);
+    const scaleLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    const scaleLine = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const scaleText = metersPerPixel * 42 >= 1000 ? `${Math.round(metersPerPixel * 42 / 1000)} km` : `${Math.round(metersPerPixel * 4.2) * 10} m`;
+    scaleLabel.textContent = scaleText;
+    scaleLabel.setAttribute('x', '258');
+    scaleLabel.setAttribute('y', '137');
+    scaleLabel.setAttribute('class', 'mini-map-scale-label');
+    scaleLine.setAttribute('d', 'M258 142h42m-42-3v6m42-6v6');
+    scaleLine.setAttribute('class', 'mini-map-scale-line');
+    svg.append(scaleLine, scaleLabel);
+
+    element.replaceChildren(svg);
+    element.dataset.mapReady = 'true';
+  };
+
+  document.querySelectorAll('.mini-route-map[data-route-map]').forEach(renderOneCardMap);
 }
 
 fetch(new URL('route-data.json', document.currentScript?.src || location.href))
@@ -404,25 +521,36 @@ const routeDetails = {
 let centersMap = null;
 
 // 선택한 길의 큰 지도: 노선선과 번호가 붙은 인증센터 핀
-function renderCentersMap(routeId) {
+async function renderCentersMap(routeId) {
   const element = document.querySelector('#centers-map');
   centersMap?.remove();
   centersMap = null;
   const paths = (officialRouteData?.[routeId]?.paths || []).filter((path) => path.length > 1);
-  element.hidden = !window.L || !paths.length;
+  element.hidden = !paths.length;
   if (element.hidden) return;
 
-  const map = centersMap = createRouteMap(element);
-  const color = officialRoutes.find((route) => route.id === routeId)?.color || '#477b69';
-  const lines = paths.map((path) => L.polyline(toLatLngs(path), {
-    color, weight: routeLineWeight, lineJoin: 'round', interactive: false,
-  }).addTo(map));
-  (centerData?.[routeId]?.centers || []).forEach((center, index) => {
-    if (center.lat == null) return;
-    const icon = L.divIcon({ className: 'center-pin', html: `<span style="border-color:${color}">${index + 1}</span>`, iconSize: [22, 22] });
-    L.marker([center.lat, center.lon], { icon, title: center.name, keyboard: false }).addTo(map);
-  });
-  map.fitBounds(L.featureGroup(lines).getBounds(), { padding: [28, 28] });
+  element.dataset.loading = 'true';
+  try {
+    await ensureLeaflet();
+    if (centersPanel.hidden || element.dataset.routeId !== routeId) return;
+    centersMap?.remove();
+    const map = centersMap = createRouteMap(element);
+    const color = officialRoutes.find((route) => route.id === routeId)?.color || '#477b69';
+    const lines = paths.map((path) => L.polyline(toLatLngs(path), {
+      color, weight: routeLineWeight, lineJoin: 'round', interactive: false,
+    }).addTo(map));
+    (centerData?.[routeId]?.centers || []).forEach((center, index) => {
+      if (center.lat == null) return;
+      const icon = L.divIcon({ className: 'center-pin', html: `<span style="border-color:${color}">${index + 1}</span>`, iconSize: [22, 22] });
+      L.marker([center.lat, center.lon], { icon, title: center.name, keyboard: false }).addTo(map);
+    });
+    map.fitBounds(L.featureGroup(lines).getBounds(), { padding: [28, 28] });
+    element.dataset.loading = 'false';
+    element.dataset.mapReady = 'true';
+  } catch (error) {
+    element.dataset.loading = 'false';
+    console.error('Failed to load detailed map:', error);
+  }
 }
 
 let centerData = null;
@@ -469,6 +597,8 @@ function showCenters(routeKey) {
   if (!detail) return;
 
   document.querySelector('#centers-title').textContent = `${route.name} 인증센터`;
+  document.querySelector('#centers-map').dataset.routeId = routeKey;
+  document.querySelector('#centers-map').dataset.mapReady = 'false';
   const total = document.createElement('strong');
   total.textContent = detail.totalDistance;
   const course = document.createElement('span');
