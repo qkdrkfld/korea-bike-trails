@@ -248,3 +248,5 @@ kbd{font-size:12px;color:#5f7166;border-radius:4px}
 .overview-map-base{object-fit:fill;opacity:.88;pointer-events:none}
 .overview-route-svg{z-index:1;overflow:hidden;pointer-events:none}
 .overview-route-svg .official-route-line{pointer-events:stroke}
+/* #14: 지도 폭이 700px 미만이 되는 601~1340px 구간에서는 범례를 하단(축척 표시 위)으로 내려 액션 바와 겹치지 않게 한다 */
+@media(min-width:601px) and (max-width:1340px){.map-route-legend{top:auto;bottom:80px;left:auto;right:16px}}
