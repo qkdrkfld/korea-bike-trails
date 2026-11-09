@@ -1,0 +1,15 @@
+테이블,컬럼,데이터 타입,필수,기본값,키/제약조건,설명
+posts,id,TEXT,예,,PRIMARY KEY,게시글 고유 ID
+posts,nickname,TEXT,예,,CHECK length 1–24,작성자 닉네임
+posts,title,TEXT,예,,CHECK length 1–100,게시글 제목
+posts,content,TEXT,예,,CHECK length 1–5000,게시글 본문
+posts,created_at,TEXT,예,UTC 현재 시각,DEFAULT,작성 시각
+posts,updated_at,TEXT,예,UTC 현재 시각,DEFAULT,수정 시각
+comments,id,TEXT,예,,PRIMARY KEY,댓글 고유 ID
+comments,post_id,TEXT,예,,FOREIGN KEY → posts.id ON DELETE CASCADE,댓글이 달린 게시글
+comments,nickname,TEXT,예,,CHECK length 1–24,댓글 작성자 닉네임
+comments,content,TEXT,예,,CHECK length 1–1000,댓글 내용
+comments,created_at,TEXT,예,UTC 현재 시각,DEFAULT,댓글 작성 시각
+likes,post_id,TEXT,예,,PRIMARY KEY (복합) · FOREIGN KEY → posts.id ON DELETE CASCADE,좋아요 대상 게시글
+likes,visitor_id_hash,TEXT,예,,PRIMARY KEY (복합),방문자 식별값의 해시
+likes,created_at,TEXT,예,UTC 현재 시각,DEFAULT,좋아요 시각
