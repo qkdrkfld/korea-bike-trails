@@ -162,7 +162,7 @@ kbd{font-size:12px;color:#5f7166;border-radius:4px}
 .stop-name strong{font-size:15px}.stop-name small{font-size:12px}.stop-distance{font-size:13px}
 .guide-items p{font-size:14px}.guide-items h3{font-size:15px}.official-button{font-size:14px}
 .site-footer p{font-size:13px}.site-footer>span{font-size:12px}}
-@media(max-width:360px){.card-stats{display:flex;flex-wrap:wrap;gap:4px 12px}.card-stats span{display:inline;margin-top:0}}
+@media(max-width:420px){.card-stats{display:flex;flex-wrap:wrap;gap:4px 12px}.card-stats span{display:inline;margin-top:0}}
 /* 지도 영역: 히어로 왼쪽 크림색에서 청록으로 이어지는 그라데이션 */
 .route-art{background:linear-gradient(120deg,#f8f5ed 0%,#e3ecdc 38%,#cfe3d8 72%,#b9d8d3 100%)}
 .map-stage{background:linear-gradient(160deg,#f3f6ea 0%,#e1ecdc 50%,#cde3da 100%);box-shadow:0 0 0 1px #12332a14,0 10px 30px #1b4a4033}
