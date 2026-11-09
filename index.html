@@ -171,7 +171,8 @@
         <label class="post-content-field"><span>내용</span><textarea name="content" maxlength="5000" rows="4" placeholder="코스 후기나 질문을 적어주세요." required></textarea></label>
         <div class="board-compose-footer"><span>제목은 100자, 내용은 5,000자까지 입력할 수 있습니다.</span><button class="board-submit" type="submit">글 등록 <span>↗</span></button></div>
       </form>
-      <div class="board-toolbar"><label class="board-search"><span aria-hidden="true">⌕</span><span class="sr-only">게시글 검색</span><input id="board-search" type="search" placeholder="게시글 검색" autocomplete="off"></label><label class="board-sort-label" for="board-sort">정렬</label><select id="board-sort" class="board-sort"><option value="latest">최신순</option><option value="likes">좋아요순</option></select></div>
+      <div class="board-toolbar"><label class="board-search"><span aria-hidden="true">⌕</span><span class="sr-only">불러온 게시글 검색</span><input id="board-search" type="search" placeholder="불러온 게시글 검색" autocomplete="off"></label><label class="board-sort-label" for="board-sort">정렬</label><select id="board-sort" class="board-sort"><option value="latest">최신순</option><option value="likes">좋아요순</option></select></div>
+      <p class="board-list-hint">게시글은 한 번에 20개씩 불러옵니다. 검색과 정렬은 현재 불러온 글에 적용되며, ‘더 보기’를 누르면 범위가 넓어집니다.</p>
       <p class="board-feedback" id="board-feedback" role="status" aria-live="polite"></p>
       <div class="post-list" id="post-list" aria-live="polite"></div>
       <p class="board-empty" id="board-empty">아직 게시글이 없습니다. 첫 이야기를 남겨보세요.</p>

@@ -2,6 +2,7 @@
 const MAX_JSON_BYTES = 24_000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 12;
+const POST_PAGE_SIZE = 20;
 
 const rateBuckets = new Map();
 
@@ -87,23 +88,56 @@ function cleanText(value, maxLength) {
 
 async function listPosts(request, env) {
   const visitor = await visitorHash(request, env);
+  const url = new URL(request.url);
+  const rawCursor = url.searchParams.get('cursor');
+  let cursorId = null;
+  let cursorCreatedAt = null;
+  if (rawCursor) {
+    try {
+      if (rawCursor.length > 512) throw new Error('invalid cursor');
+      const cursor = JSON.parse(atob(rawCursor));
+      if (typeof cursor.id !== 'string' || cursor.id.length > 128 || typeof cursor.createdAt !== 'string' || cursor.createdAt.length > 64 || Number.isNaN(Date.parse(cursor.createdAt))) {
+        throw new Error('invalid cursor');
+      }
+      cursorId = cursor.id;
+      cursorCreatedAt = cursor.createdAt;
+    } catch {
+      return json({ error: '페이지 커서 값이 올바르지 않습니다.' }, 400);
+    }
+  }
   const { results: rows } = await env.DB.prepare(`
     SELECT p.id, p.nickname, p.title, p.content, p.created_at AS createdAt,
       (SELECT COUNT(*) FROM likes l WHERE l.post_id = p.id) AS likes,
       CASE WHEN ? IS NULL THEN 0 ELSE EXISTS(
         SELECT 1 FROM likes l WHERE l.post_id = p.id AND l.visitor_id_hash = ?
       ) END AS viewerLiked
-    FROM posts p ORDER BY p.created_at DESC LIMIT 100
-  `).bind(visitor, visitor).all();
+    FROM posts p
+    WHERE (? IS NULL OR p.created_at < ? OR (p.created_at = ? AND p.id < ?))
+    ORDER BY p.created_at DESC, p.id DESC
+    LIMIT ?
+  `).bind(visitor, visitor, cursorId, cursorCreatedAt, cursorCreatedAt, cursorId, POST_PAGE_SIZE + 1).all();
 
-  const posts = await Promise.all(rows.map(async (post) => {
+  const hasMore = rows.length > POST_PAGE_SIZE;
+  const pageRows = hasMore ? rows.slice(0, POST_PAGE_SIZE) : rows;
+  const commentsByPost = new Map(pageRows.map((post) => [post.id, []]));
+  if (pageRows.length) {
+    const placeholders = pageRows.map(() => '?').join(', ');
     const { results: comments } = await env.DB.prepare(`
-      SELECT id, nickname, content, created_at AS createdAt
-      FROM comments WHERE post_id = ? ORDER BY created_at ASC
-    `).bind(post.id).all();
-    return { ...post, likedBy: post.viewerLiked ? ['current'] : [], comments };
+      SELECT id, post_id AS postId, nickname, content, created_at AS createdAt
+      FROM comments WHERE post_id IN (${placeholders}) ORDER BY created_at ASC, id ASC
+    `).bind(...pageRows.map((post) => post.id)).all();
+    for (const comment of comments) commentsByPost.get(comment.postId)?.push(comment);
+  }
+  const posts = pageRows.map((post) => ({
+    ...post,
+    likedBy: post.viewerLiked ? ['current'] : [],
+    comments: commentsByPost.get(post.id) || [],
   }));
-  return json({ posts });
+  const lastPost = pageRows.at(-1);
+  const nextCursor = hasMore && lastPost
+    ? btoa(JSON.stringify({ id: lastPost.id, createdAt: lastPost.createdAt }))
+    : null;
+  return json({ posts, nextCursor });
 }
 
 async function createPost(request, env) {

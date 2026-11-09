@@ -13,6 +13,9 @@ const storageNotice = document.querySelector('#board-storage-notice');
 
 let posts = [];
 let currentVisitorId = getOrCreateVisitorId();
+let nextPostCursor = null;
+let isLoadingPosts = false;
+let postLoadError = false;
 
 function getOrCreateVisitorId() {
   try {
@@ -158,30 +161,97 @@ function createPostElement(post) {
 }
 
 function renderPosts() {
+  const expandedCommentPostIds = new Set(
+    [...postList.querySelectorAll('.board-post')]
+      .filter((article) => !article.querySelector('.post-comments')?.hidden)
+      .map((article) => article.dataset.postId),
+  );
   const query = postSearch.value.trim().toLocaleLowerCase('ko');
   const sortedPosts = [...posts].sort((a, b) => {
     if (postSort.value === 'likes') return (b.likes || 0) - (a.likes || 0) || b.createdAt.localeCompare(a.createdAt);
     return b.createdAt.localeCompare(a.createdAt);
   });
   const filteredPosts = sortedPosts.filter((post) => `${post.title} ${post.content} ${post.nickname}`.toLocaleLowerCase('ko').includes(query));
-  postList.replaceChildren(...filteredPosts.map(createPostElement));
-  postCount.textContent = `게시글 ${posts.length}`;
-  emptyBoard.hidden = filteredPosts.length !== 0;
-  if (posts.length && !filteredPosts.length) emptyBoard.textContent = '검색 결과가 없습니다.';
+  const renderedPosts = filteredPosts.map(createPostElement);
+  renderedPosts.forEach((article) => {
+    if (expandedCommentPostIds.has(article.dataset.postId)) article.querySelector('.post-comments').hidden = false;
+  });
+  postList.replaceChildren(...renderedPosts);
+  postCount.textContent = `게시글 ${posts.length}${nextPostCursor ? '+' : ''}`;
+  emptyBoard.hidden = filteredPosts.length !== 0 || isLoadingPosts;
+  if (postLoadError) emptyBoard.textContent = '게시글을 불러오지 못했습니다. 다시 시도해 주세요.';
+  else if (posts.length && !filteredPosts.length) emptyBoard.textContent = '검색 결과가 없습니다.';
   else emptyBoard.textContent = '아직 게시글이 없습니다. 첫 이야기를 남겨보세요.';
+  updateLoadMoreButton();
 }
 
-async function loadPosts() {
+function updateLoadMoreButton() {
+  let button = document.querySelector('#board-load-more');
+  if (!button) {
+    button = document.createElement('button');
+    button.id = 'board-load-more';
+    button.className = 'board-load-more';
+    button.type = 'button';
+    button.addEventListener('click', () => loadPosts({ append: true }));
+    postList.after(button);
+  }
+  button.hidden = !nextPostCursor && !isLoadingPosts;
+  button.disabled = isLoadingPosts;
+  button.textContent = isLoadingPosts ? '게시글을 불러오는 중…' : '게시글 더 보기';
+}
+
+function showPostSkeletons(count = 3) {
+  postList.replaceChildren(...Array.from({ length: count }, () => {
+    const skeleton = document.createElement('div');
+    skeleton.className = 'board-post-skeleton';
+    skeleton.setAttribute('aria-hidden', 'true');
+    skeleton.innerHTML = '<span class="skeleton-line skeleton-meta"></span><span class="skeleton-line skeleton-title"></span><span class="skeleton-line skeleton-copy"></span><span class="skeleton-line skeleton-copy short"></span>';
+    return skeleton;
+  }));
+}
+
+function appendPostSkeletons(count = 2) {
+  postList.querySelectorAll('.board-post-skeleton').forEach((item) => item.remove());
+  for (let index = 0; index < count; index += 1) {
+    const skeleton = document.createElement('div');
+    skeleton.className = 'board-post-skeleton';
+    skeleton.setAttribute('aria-hidden', 'true');
+    skeleton.innerHTML = '<span class="skeleton-line skeleton-meta"></span><span class="skeleton-line skeleton-title"></span><span class="skeleton-line skeleton-copy"></span><span class="skeleton-line skeleton-copy short"></span>';
+    postList.appendChild(skeleton);
+  }
+}
+
+async function loadPosts({ append = false } = {}) {
+  if (isLoadingPosts) return;
+  isLoadingPosts = true;
+  postList.setAttribute('aria-busy', 'true');
+  postLoadError = false;
+  if (!append) showPostSkeletons();
+  else {
+    appendPostSkeletons();
+    updateLoadMoreButton();
+  }
   try {
-    const result = await requestBoard('/posts');
-    posts = result.posts || [];
-    const isLocalDemo = result.mode === 'local';
-    storageNotice.hidden = !isLocalDemo;
+    const query = append && nextPostCursor ? `?cursor=${encodeURIComponent(nextPostCursor)}` : '';
+    const result = await requestBoard(`/posts${query}`);
+    const pagePosts = result.posts || [];
+    posts = append ? [...posts, ...pagePosts] : pagePosts;
+    nextPostCursor = result.nextCursor || null;
+    postLoadError = false;
+    storageNotice.hidden = true;
     renderPosts();
   } catch (error) {
+    postLoadError = true;
     storageNotice.textContent = `게시판 API에 연결할 수 없습니다. ${error.message}`;
     storageNotice.classList.add('is-error');
     boardFeedback.textContent = error.message;
+    if (!append) {
+      postList.replaceChildren();
+    }
+  } finally {
+    isLoadingPosts = false;
+    postList.setAttribute('aria-busy', 'false');
+    renderPosts();
   }
 }
 
@@ -195,7 +265,7 @@ postForm.addEventListener('submit', async (event) => {
 
   try {
     await requestBoard('/posts', { method: 'POST', body: JSON.stringify({ nickname, title, content }) });
-    await loadPosts();
+      await loadPosts();
     postForm.reset();
     boardFeedback.textContent = '게시글을 등록했습니다.';
   } catch (error) {
@@ -218,7 +288,7 @@ postList.addEventListener('click', async (event) => {
 
   try {
     await requestBoard(`/posts/${encodeURIComponent(post.id)}/likes`, { method: 'POST' });
-    await loadPosts();
+      await loadPosts();
   } catch (error) {
     boardFeedback.textContent = error.message;
   }
@@ -234,10 +304,16 @@ postList.addEventListener('submit', async (event) => {
   const nickname = String(formData.get('nickname') || '').trim();
   const content = String(formData.get('content') || '').trim();
   if (!post || !nickname || !content) return;
+  const keepCommentsOpen = article.querySelector('.post-comments')?.hidden === false;
 
   try {
     await requestBoard(`/posts/${encodeURIComponent(post.id)}/comments`, { method: 'POST', body: JSON.stringify({ nickname, content }) });
     await loadPosts();
+    if (keepCommentsOpen) {
+      const refreshedArticle = [...postList.querySelectorAll('[data-post-id]')]
+        .find((item) => item.dataset.postId === post.id);
+      if (refreshedArticle) refreshedArticle.querySelector('.post-comments').hidden = false;
+    }
     boardFeedback.textContent = '댓글을 등록했습니다.';
   } catch (error) {
     boardFeedback.textContent = error.message;
