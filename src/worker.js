@@ -1,4 +1,5 @@
-const MAX_JSON_BYTES = 12_000;
+// Enough room for 5,000 four-byte UTF-8 characters plus JSON field overhead.
+const MAX_JSON_BYTES = 24_000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 12;
 
