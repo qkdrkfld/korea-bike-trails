@@ -734,10 +734,6 @@ document.querySelector('.centers-close').addEventListener('click', () => {
   centersPanel.hidden = true;
 });
 
-document.querySelector('#centers-map').addEventListener('click', () => {
-  centersPanel.hidden = true;
-});
-
 document.addEventListener('keydown', (event) => {
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
